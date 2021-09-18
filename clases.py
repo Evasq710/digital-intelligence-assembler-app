@@ -1,6 +1,9 @@
+from tkinter import END
+
 # ========== MAQUINAS ==========
 class Maquina:
-    def __init__(self, cantidad_lineas, listado_lineas, listado_productos):
+    def __init__(self, nombre_archivo, cantidad_lineas, listado_lineas, listado_productos):
+        self.nombre_archivo = nombre_archivo
         self.cantidad_lineas = cantidad_lineas
         self.listado_lineas = listado_lineas
         self.listado_productos = listado_productos
@@ -22,6 +25,12 @@ class Lista_Maquinas:
             while maquina_actual.siguiente:
                 maquina_actual = maquina_actual.siguiente
             maquina_actual.siguiente = Nodo_Maquina(maquina=nueva_maquina)
+    
+    def listbox_maquinas(self, listbox):
+        actual = self.primer_maquina
+        while actual:
+            listbox.insert(END, actual.maquina.nombre_archivo)
+            actual = actual.siguiente
 
 # ========== LINEAS DE PRODUCCIÓN EN MÁQUINA ==========
 class Linea:
@@ -111,7 +120,7 @@ class Lista_Productos:
 
 # ========== COMANDOS EN PRODUCTO ==========
 class Comando:
-    def __init__(self, linea, componente, requiere_ensamblar, es_ultimo, ensamblando = False, nothing = False):
+    def __init__(self, linea, componente, requiere_ensamblar = False, es_ultimo = False, ensamblando = False, nothing = False):
         self.linea = linea
         self.componente = componente
         self.requiere_ensamblar = requiere_ensamblar
@@ -136,6 +145,13 @@ class Lista_Comandos:
             while comando_actual.siguiente:
                 comando_actual = comando_actual.siguiente
             comando_actual.siguiente = Nodo_Comando(comando=nuevo_comando)
+    
+    def ultimo_true(self):
+        if self.primer_comando is not None:
+            actual = self.primer_comando
+            while actual.siguiente:
+                actual = actual.siguiente
+            actual.comando.es_ultimo = True
     
     def devolver_componentes_pendientes(self, linea):
         actual = self.primer_comando
