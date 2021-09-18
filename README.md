@@ -1,1 +1,7 @@
 # IPC2_Proyecto2_201900131
+### Nombre
+Elías Abraham Vasquez Soto
+### Carnet
+201900131
+### Sección
+LABORATORIO INTRODUCCION A LA PROGRAMACION Y COMPUTACION 2 Sección E
