@@ -5,6 +5,7 @@ from clases import *
 import traceback, os
 
 lista_global_maquinas = Lista_Maquinas()
+lista_global_simulaciones = Lista_Simulaciones()
 
 class Interfaz:
     def __init__(self, ventana):
@@ -13,7 +14,7 @@ class Interfaz:
         self.window.state('zoomed')
         
         imagen = PhotoImage(file = "images/fondo.png")
-        fondo = Label(self.window, image = imagen, bg="white")
+        fondo = Label(self.window, image = imagen, bg="black")
         fondo.photo = imagen
         fondo.place(x=0, y=0, relwidth=1, relheight=1)
 
@@ -63,13 +64,13 @@ class Interfaz:
         for frame in (self.frame1, self.frame2, self.frame3, self.frame4):
             frame.place(x=250, y=280, width=1050, height=480)
         
-        frame_btn = Frame(self.window, bg="white")
+        frame_btn = Frame(self.window, bg="black")
         frame_btn.place(x=75, y=200)
 
         self.cargar_maquina_btn = Button(frame_btn, text="Cargar Archivo - Máquina", font=("Consolas", 15), bg="light sea green", command = lambda:[self.frame1.tkraise(), self.cargar_maquina()])
         self.cargar_maquina_btn.grid(row=0, column=0, padx=20)
 
-        self.cargar_simulacion_btn = Button(frame_btn, text="Cargar Archivo - Simulación", font=("Consolas", 15), bg="light sea green", command = lambda:[self.frame2.tkraise()])
+        self.cargar_simulacion_btn = Button(frame_btn, text="Cargar Archivo - Simulación", font=("Consolas", 15), bg="light sea green", command = lambda:[self.frame2.tkraise(), self.cargar_simulacion()])
         self.cargar_simulacion_btn.grid(row=0, column=1, padx=20)
 
         self.ensamblar_btn = Button(frame_btn, text="Ensamblar productos", font=("Consolas", 15), bg="light sea green", command = lambda:[self.frame3.tkraise()])
@@ -96,10 +97,10 @@ class Interfaz:
 
             self.frame_file = Frame(self.frame1, bg="white")
             self.frame_file.place(x=0, y=0, relheight=1, relwidth=1)
-            load_img1 = PhotoImage(file="images/loaded.png")
+            load_img1 = PhotoImage(file="images/load1.png")
             load_lb = Label(self.frame_file, image=load_img1, bg="white")
             load_lb.photo = load_img1
-            load_lb.place(x=10, y=60, width=300, height=300)
+            load_lb.place(x=10, y=40, width=300, height=300) 
             title1= Label(self.frame_file, text="El archivo se encuentra cargado al programa.", font=("Consolas", 20), bg="white")
             title1.place(x=320, y=100)
             print("->Archivo leído con éxito")
@@ -129,7 +130,7 @@ class Interfaz:
                 traceback.print_exc()
                 title2= Label(self.frame_file, text="Ocurrió un error inesperado. Ver consola :(", font=("Consolas", 20), bg="white")
                 title2.place(x=320, y=150)
-                print("-> Ocurrió un error en el analizador léxico.")
+                print("-> Ocurrió un error inesperado, ver traceback.")
 
             archivo.close()
 
@@ -221,6 +222,83 @@ class Interfaz:
                 listado_comandos.ultimo_true()
                 listado_productos.insertar(Producto(nombre, listado_comandos))
             lista_global_maquinas.insertar(Maquina(nombre_xml, cantidad_lineas, listado_lineas, listado_productos))
+            return True
+        except:
+            traceback.print_exc()
+            return False
+
+    def cargar_simulacion(self):
+        global lista_global_simulaciones
+        name_file = filedialog.askopenfilename(
+            title = "Seleccionar archivo XML",
+            initialdir = "./",
+            filetypes = {
+                ("Archivos XML", "*.xml"),
+                ("Todos los archivos", "*.*")
+            }
+        )
+        try:
+            archivo = open(name_file)
+
+            self.frame2_file = Frame(self.frame2, bg="white")
+            self.frame2_file.place(x=0, y=0, relheight=1, relwidth=1)
+            load_img1 = PhotoImage(file="images/load2.png")
+            load_lb = Label(self.frame2_file, image=load_img1, bg="white")
+            load_lb.photo = load_img1
+            load_lb.place(x=10, y=60, width=300, height=300)
+            title1= Label(self.frame2_file, text="El archivo se encuentra cargado al programa.", font=("Consolas", 20), bg="white")
+            title1.place(x=320, y=100)
+            print("->Archivo leído con éxito")
+
+            try:
+                title2= Label(self.frame2_file, text="Guardando la nueva simulación al programa...", font=("Consolas", 20), bg="white")
+                title2.place(x=320, y=150)
+
+                simulacion_guardada = self.nueva_simulacion(name_file)
+                if simulacion_guardada:
+                    title2.config(text="Nueva simulación guardada correctamente.")
+                    title2.place(x=320, y=150)
+                else:
+                    title2.config(text="Ocurrió un error en el análisis del archivo. Revisar etiquetas.")
+                    title2.place(x=320, y=150)
+                title3= Label(self.frame2_file, text="Simulaciones cargadas en el programa:", font=("Consolas", 20), bg="white")
+                title3.place(x=320, y=200)
+                self.frame2_listbox = Frame(self.frame2_file)
+                self.frame2_listbox.place(x=350, y=250)
+                scroll = Scrollbar(self.frame2_listbox, orient=VERTICAL)
+                scroll.pack(side=RIGHT, fill=Y)
+                listbox_simulaciones = Listbox(self.frame2_listbox, width=50, font=("Consolas", 12), yscrollcommand=scroll.set)
+                listbox_simulaciones.pack()
+                scroll.config(command=listbox_simulaciones.yview)
+                lista_global_simulaciones.listbox_simulaciones(listbox_simulaciones)
+            except Exception:
+                traceback.print_exc()
+                title2= Label(self.frame2_file, text="Ocurrió un error inesperado. Ver consola :(", font=("Consolas", 20), bg="white")
+                title2.place(x=320, y=150)
+                print("-> Ocurrió un error inesperado. Ver Traceback")
+
+            archivo.close()
+
+        except Exception:
+            traceback.print_exc()
+            print("->No se seleccionó un archivo")
+    
+    def nueva_simulacion(self, ruta_xml):
+        global lista_global_simulaciones
+        try:
+            tree_xml_simulacion = ET.parse(ruta_xml)
+            root_original = tree_xml_simulacion.getroot()
+            root_string = ET.tostring(root_original)
+            root_string = root_string.lower()
+            root_simulacion = ET.fromstring(root_string)
+            nombre_simulacion = root_simulacion.find('nombre').text
+            nombre_simulacion = nombre_simulacion.replace('\n', '').replace('\t', '')
+            nombres_productos = Lista_Nombres_Productos()
+            for prod in root_simulacion.find('listadoproductos'):
+                nombre = prod.text
+                nombre = nombre.replace('\n', '').replace('\t', '')
+                nombres_productos.insertar(nombre)
+            lista_global_simulaciones.insertar(Simulacion(nombre_simulacion, nombres_productos))
             return True
         except:
             traceback.print_exc()
