@@ -161,3 +161,51 @@ class Lista_Comandos:
                 listado_pendientes.insertar(actual.comando.componente)
             actual = actual.siguiente
         return listado_pendientes
+
+# ========== SIMULACIONES DE ENSAMBLAJE DE PRODUCTOS ==========
+class Simulacion:
+    def __init__(self, nombre, listado_nombres_productos):
+        self.nombre = nombre
+        self.listado_nombre_productos = listado_nombres_productos
+
+class Nodo_Simulacion:
+    def __init__(self, simulacion = None, siguiente = None):
+        self.simulacion = simulacion
+        self.siguiente = siguiente
+
+class Lista_Simulaciones:
+    def __init__(self):
+        self.primer_simulacion = None
+    
+    def insertar(self, nueva_simulacion):
+        if self.primer_simulacion is None:
+            self.primer_simulacion = Nodo_Simulacion(simulacion=nueva_simulacion)
+        else:
+            simulacion_actual = self.primer_simulacion
+            while simulacion_actual.siguiente:
+                simulacion_actual = simulacion_actual.siguiente
+            simulacion_actual.siguiente = Nodo_Simulacion(simulacion=nueva_simulacion)
+
+    def listbox_simulaciones(self, listbox):
+        actual = self.primer_simulacion
+        while actual:
+            listbox.insert(END, actual.simulacion.nombre)
+            actual = actual.siguiente
+
+class Nodo_Nombre_Producto:
+    def __init__(self, nombre_producto = None, siguiente = None):
+        self.nombre_producto = nombre_producto
+        self.siguiente = siguiente
+
+class Lista_Nombres_Productos:
+    def __init__(self):
+        self.primer_nombre = None
+    
+    def insertar(self, nuevo_nombre):
+        if self.primer_nombre is None:
+            self.primer_nombre = Nodo_Nombre_Producto(nombre_producto=nuevo_nombre)
+        else:
+            nombre_actual = self.primer_nombre
+            while nombre_actual.siguiente:
+                nombre_actual = nombre_actual.siguiente
+            nombre_actual.siguiente = Nodo_Nombre_Producto(nombre_producto=nuevo_nombre)
