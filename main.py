@@ -28,7 +28,7 @@ class Interfaz:
         load_lb4 = Label(self.frame4_no_file, image=load_img4, bg="white")
         load_lb4.photo = load_img4
         load_lb4.place(x=10, y=50, width=300, height=300)
-        title1= Label(self.frame4_no_file, text="No se ha cargado ningún archivo al programa.", font=("Consolas", 20), bg="white")
+        title1= Label(self.frame4_no_file, text="No se ha cargado ninguna máquina al programa.", font=("Consolas", 20), bg="white")
         title1.place(x=320, y=200)
 
         self.frame3 = LabelFrame(self.window,bg="white", text="Ensamblar productos")
@@ -38,7 +38,7 @@ class Interfaz:
         load_lb3 = Label(self.frame3_no_file, image=load_img3, bg="white")
         load_lb3.photo = load_img3
         load_lb3.place(x=10, y=50, width=300, height=300)
-        title1= Label(self.frame3_no_file, text="No se ha cargado ningún archivo al programa.", font=("Consolas", 20), bg="white")
+        title1= Label(self.frame3_no_file, text="No se ha cargado ninguna máquina al programa.", font=("Consolas", 20), bg="white")
         title1.place(x=320, y=200)
 
         self.frame2 = LabelFrame(self.window,bg="white", text="Cargar Archivo - Simulación")
@@ -73,7 +73,7 @@ class Interfaz:
         self.cargar_simulacion_btn = Button(frame_btn, text="Cargar Archivo - Simulación", font=("Consolas", 15), bg="light sea green", command = lambda:[self.frame2.tkraise(), self.cargar_simulacion()])
         self.cargar_simulacion_btn.grid(row=0, column=1, padx=20)
 
-        self.ensamblar_btn = Button(frame_btn, text="Ensamblar productos", font=("Consolas", 15), bg="light sea green", command = lambda:[self.frame3.tkraise()])
+        self.ensamblar_btn = Button(frame_btn, text="Ensamblar productos", font=("Consolas", 15), bg="light sea green", command = lambda:[self.frame3.tkraise(), self.ensamblar_productos()])
         self.ensamblar_btn.grid(row=0, column=2, padx=20)
 
         self.reporte_cola_btn = Button(frame_btn, text="Reporte de cola de secuencia", font=("Consolas", 15), bg="light sea green", command = lambda:[self.frame4.tkraise()])
@@ -101,7 +101,7 @@ class Interfaz:
             load_lb = Label(self.frame_file, image=load_img1, bg="white")
             load_lb.photo = load_img1
             load_lb.place(x=10, y=40, width=300, height=300) 
-            title1= Label(self.frame_file, text="El archivo se encuentra cargado al programa.", font=("Consolas", 20), bg="white")
+            title1= Label(self.frame_file, text="El programa ha cargado archivos de máquinas exitosamente.", font=("Consolas", 20), bg="white")
             title1.place(x=320, y=100)
             print("->Archivo leído con éxito")
 
@@ -246,7 +246,7 @@ class Interfaz:
             load_lb = Label(self.frame2_file, image=load_img1, bg="white")
             load_lb.photo = load_img1
             load_lb.place(x=10, y=60, width=300, height=300)
-            title1= Label(self.frame2_file, text="El archivo se encuentra cargado al programa.", font=("Consolas", 20), bg="white")
+            title1= Label(self.frame2_file, text="El programa ha cargado archivos de simulación exitosamente.", font=("Consolas", 20), bg="white")
             title1.place(x=320, y=100)
             print("->Archivo leído con éxito")
 
@@ -303,6 +303,28 @@ class Interfaz:
         except:
             traceback.print_exc()
             return False
+
+    def ensamblar_productos(self):
+        global lista_global_maquinas
+        if lista_global_maquinas.primer_maquina is not None:
+            self.frame3_file = Frame(self.frame3, bg="white")
+            self.frame3_file.place(x=0, y=0, relheight=1, relwidth=1)
+            load_img1 = PhotoImage(file="images/assembling.png")
+            load_lb = Label(self.frame3_file, image=load_img1, bg="white")
+            load_lb.photo = load_img1
+            load_lb.place(x=300, y=20, width=450, height=450)
+            self.frame_btn_ensamblaje = Frame(self.frame3_file, bg="white")
+            self.frame_btn_ensamblaje.place(x=200, y=10)
+            self.btn_producto= Button(self.frame_btn_ensamblaje, text="Ensamblar producto precargado", font=("Consolas", 14), bg="aquamarine")
+            self.btn_producto.grid(row=0, column=0, padx=20)
+            self.btn_simulacion = Button(self.frame_btn_ensamblaje, text="Ensamblar simulación precargada", font=("Consolas", 14), bg="aquamarine")
+            self.btn_simulacion.grid(row=0, column=1, padx=20)
+        else:
+            print("-> No se ha cargada ninguna máquina al programa")
+
+    def ensamblar_producto_precargado(self):
+        global lista_global_maquinas
+        pass
 
 if __name__ == '__main__':
     ventana = Tk()
