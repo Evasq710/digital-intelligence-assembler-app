@@ -1,3 +1,5 @@
+from tkinter import font
+from tkinter.font import BOLD
 from xml.etree import ElementTree as ET
 from tkinter import *
 from tkinter import filedialog, ttk
@@ -318,7 +320,7 @@ class Interfaz:
             self.frame_btn_ensamblaje.place(x=200, y=10)
             self.btn_producto= Button(self.frame_btn_ensamblaje, text="Ensamblar producto precargado", font=("Consolas", 14), bg="aquamarine", command= lambda:[self.ensamblar_producto_precargado()])
             self.btn_producto.grid(row=0, column=0, padx=20)
-            self.btn_simulacion = Button(self.frame_btn_ensamblaje, text="Ensamblar simulación precargada", font=("Consolas", 14), bg="aquamarine")
+            self.btn_simulacion = Button(self.frame_btn_ensamblaje, text="Ensamblar simulación precargada", font=("Consolas", 14), bg="aquamarine", command=lambda:[self.ensamblar_simulacion_precargada()])
             self.btn_simulacion.grid(row=0, column=1, padx=20)
             if self.frame_ensamble is not None:
                 self.frame_ensamble = None
@@ -332,37 +334,83 @@ class Interfaz:
         lb = Label(self.frame_ensamble, text="Productos cargados al programa:", font=("Consolas", 14), bg="white")
         lb.place(x=10, y=10)
         self.frame3_listbox_productos = Frame(self.frame_ensamble)
-        self.frame3_listbox_productos.place(x=50, y=50, height=250)
+        self.frame3_listbox_productos.place(x=40, y=50, width=250, height=250)
         scroll = Scrollbar(self.frame3_listbox_productos, orient=VERTICAL)
         scroll.pack(side=RIGHT, fill=Y)
-        listbox_productos = Listbox(self.frame3_listbox_productos, font=("Consolas", 12), yscrollcommand=scroll.set, height=250)
+        listbox_productos = Listbox(self.frame3_listbox_productos, font=("Consolas", 12), yscrollcommand=scroll.set, width=250, height=250)
         listbox_productos.pack()
         scroll.config(command=listbox_productos.yview)
         lista_global_maquinas.listbox_productos_cargados(listbox_productos)
         ensamblar_btn = Button(self.frame_ensamble, text="Ensamblar producto", font=("Consolas", 14), bg="green yellow", command=lambda:[self.ensamblar_producto_individual(listbox_productos.get(ANCHOR))])
         ensamblar_btn.place(x=50, y=320)
-        load_img1 = PhotoImage(file="images/assembling2.png")
-        load_lb = Label(self.frame_ensamble, image=load_img1, bg="white")
-        load_lb.photo = load_img1
-        load_lb.place(x=450, y=50, width=300, height=300)
+        as_img = PhotoImage(file="images/assembling2.png")
+        self.as_lb = Label(self.frame_ensamble, image=as_img, bg="white")
+        self.as_lb.photo = as_img
+        self.as_lb.place(x=450, y=50, width=300, height=300)
+        self.lb_producto = None
+        self.lb_tiempo_total = None
 
     def ensamblar_producto_individual(self, nombre_producto):
         global lista_global_maquinas
         if nombre_producto != "":
             lineas = lista_global_maquinas.cantidad_lineas(nombre_producto)
             if lineas is not False:
+                self.as_lb.destroy()
+                if self.lb_producto is not None:
+                    self.lb_producto.destroy()
+                self.lb_producto = Label(self.frame_ensamble, text=nombre_producto, font=("Consolas", 14, 'bold'), bg="white")
+                self.lb_producto.place(x=550, y=10)
                 self.frame3_treview = Frame(self.frame_ensamble)
                 self.frame3_treview.place(x=300, y=50, width=650, height=250)
-                treeview_ensamblaje = ttk.Treeview(self.frame3_treview, columns=[f"#{n}" for n in range(1, lineas + 1)], height=250)
-                lista_global_maquinas.ensamblar_producto(nombre_producto, treeview_ensamblaje)
+                estilos = ttk.Style()
+                estilos.theme_use('default')
+                estilos.configure("Treeview", font=("Consolas", 10))
+                estilos.layout("Treeview.Heading")
+                estilos.configure("Treeview.Heading", font=("Consolas", 10, 'bold'), background="black", foreground="white")
+                treeview_ensamblaje = ttk.Treeview(self.frame3_treview, columns=[f"#{n}" for n in range(1, lineas + 1)], style="Treeview", height=250)
+                if lista_global_maquinas.boolean_producto_ensamblado(nombre_producto):
+                    print("->Producto ya ensamblado con anterioridad")
+                    segundos_ensamblaje = lista_global_maquinas.treeview_producto_ensamblado(nombre_producto, treeview_ensamblaje)
+                else:
+                    print("->Producto no ha sido ensamblado")
+                    segundos_ensamblaje = lista_global_maquinas.ensamblar_producto(nombre_producto, treeview_ensamblaje)
                 scroll_vertical = Scrollbar(self.frame3_treview, orient=VERTICAL, command=treeview_ensamblaje.yview)
                 scroll_vertical.pack(side=RIGHT, fill=Y)
                 scroll_horizontal = Scrollbar(self.frame3_treview, orient=HORIZONTAL, command=treeview_ensamblaje.xview)
                 scroll_horizontal.pack(side=BOTTOM, fill=X)
                 treeview_ensamblaje.configure(yscrollcommand=scroll_vertical.set ,xscrollcommand = scroll_horizontal.set)
                 treeview_ensamblaje.pack()
+                if self.lb_tiempo_total is not None:
+                    self.lb_tiempo_total.destroy()
+                self.lb_tiempo_total = Label(self.frame_ensamble, text=f"Tiempo óptimo de ensamblaje: {segundos_ensamblaje} segundos", font=("Consolas", 14), bg="white")
+                self.lb_tiempo_total.place(x=300, y=330)
             else:
                 print("-> Ocurrió un error, no se encontró el producto seleccionado en la lista de máquinas cargadas")
+
+    def ensamblar_simulacion_precargada(self):
+        global lista_global_simulaciones
+        self.frame_ensamble_simulacion = Frame(self.frame3_file, bg="white")
+        self.frame_ensamble_simulacion.place(x=50, y=60, width=950, height=390)
+        lb = Label(self.frame_ensamble_simulacion, text="Simulaciones cargadas al programa:", font=("Consolas", 14), bg="white")
+        lb.place(x=10, y=10)
+        self.frame3_listbox_simulaciones = Frame(self.frame_ensamble_simulacion)
+        self.frame3_listbox_simulaciones.place(x=50, y=50, height=250, width=250)
+        scroll = Scrollbar(self.frame3_listbox_simulaciones, orient=VERTICAL)
+        scroll.pack(side=RIGHT, fill=Y)
+        listbox_simulaciones = Listbox(self.frame3_listbox_simulaciones, font=("Consolas", 12), yscrollcommand=scroll.set, width=250, height=250)
+        listbox_simulaciones.pack()
+        scroll.config(command=listbox_simulaciones.yview)
+        lista_global_simulaciones.listbox_simulaciones(listbox_simulaciones)
+        ensamblar_btn = Button(self.frame_ensamble_simulacion, text="Ensamblar productos en simulación", font=("Consolas", 14), bg="green yellow", command=lambda:[self.ensamblar_productos_simulacion(listbox_simulaciones.get(ANCHOR))])
+        ensamblar_btn.place(x=0, y=320)
+        as_img = PhotoImage(file="images/assembling2.png")
+        self.as_lb_sim = Label(self.frame_ensamble_simulacion, image=as_img, bg="white")
+        self.as_lb_sim.photo = as_img
+        self.as_lb_sim.place(x=450, y=50, width=300, height=300)
+        self.lb_simulacion = None
+    
+    def ensamblar_productos_simulacion(self, nombre_simulacion):
+        print(nombre_simulacion)
 
 if __name__ == '__main__':
     ventana = Tk()

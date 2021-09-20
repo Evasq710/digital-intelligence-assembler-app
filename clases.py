@@ -1,4 +1,4 @@
-from tkinter import END, ttk
+from tkinter import END, font, ttk
 
 # ========== MAQUINAS ==========
 class Maquina:
@@ -38,6 +38,14 @@ class Lista_Maquinas:
             actual.maquina.listado_productos.insertar_nombre_productos_LB(listbox)
             actual = actual.siguiente
     
+    def boolean_producto_ensamblado(self, nombre_producto):
+        actual = self.primer_maquina
+        while actual:
+            encontrado = actual.maquina.listado_productos.producto_en_maquina(nombre_producto)
+            if encontrado:
+                return actual.maquina.listado_productos.producto_ensamblado(nombre_producto)
+            actual = actual.siguiente
+
     def cantidad_lineas(self, nombre_producto):
         actual = self.primer_maquina
         while actual:
@@ -58,6 +66,7 @@ class Lista_Maquinas:
                         treeview.column(f"#{n}", width = 50)
                         treeview.heading(f"#{n}", text = "Tiempo")
                     else:
+                        treeview.column(f"#{n}", width = 150, anchor='center')
                         treeview.heading(f"#{n}", text = f"Línea {n}")
                 actual.maquina.listado_lineas.pendientes_por_linea(product_assembling.listado_comandos)
                 #Acciones por segundo
@@ -66,11 +75,29 @@ class Lista_Maquinas:
                     segundos += 1
                     actual.maquina.listado_lineas.acciones_por_segundo(segundos, product_assembling)
                     if product_assembling.ensamblado:
-                        #Filas
+                        product_assembling.segundos_ensamblaje_total = segundos
                         for i in range(segundos):
                             treeview.insert("", END, text=f"{i+1}", values=product_assembling.listado_acciones.devolver_acciones(i+1))
                         break
-                break
+                return segundos
+            actual = actual.siguiente
+    
+    def treeview_producto_ensamblado(self, nombre_producto, treeview):
+        actual = self.primer_maquina
+        while actual:
+            product_assembling = actual.maquina.listado_productos.devolver_producto(nombre_producto)
+            if product_assembling is not None:
+                #Cabeceras
+                for n in range(actual.maquina.cantidad_lineas + 1):
+                    if n == 0:
+                        treeview.column(f"#{n}", width = 50)
+                        treeview.heading(f"#{n}", text = "Tiempo")
+                    else:
+                        treeview.column(f"#{n}", width = 150, anchor='center')
+                        treeview.heading(f"#{n}", text = f"Línea {n}")
+                for i in range(product_assembling.segundos_ensamblaje_total):
+                    treeview.insert("", END, text=f"{i+1}", values=product_assembling.listado_acciones.devolver_acciones(i+1))
+                return product_assembling.segundos_ensamblaje_total
             actual = actual.siguiente
 
 # ========== LINEAS DE PRODUCCIÓN EN MÁQUINA ==========
@@ -126,11 +153,11 @@ class Lista_Lineas:
                         comando_requiere_ensamblar = producto.listado_comandos.devolver_requiere_ensamblar()
                         if actual.linea.numero == comando_requiere_ensamblar.linea and actual.linea.componente_actual == comando_requiere_ensamblar.componente:
                             if comando_requiere_ensamblar.ensamblando:
-                                producto.nueva_accion(segundo, actual.linea.numero, True, False)
+                                producto.nueva_accion(segundo, actual.linea.numero, True, False, componente=actual.linea.componente_actual)
                                 producto.segundos_ensamblando += 1
                             else:
                                 comando_requiere_ensamblar.ensamblando = True
-                                producto.nueva_accion(segundo, actual.linea.numero, True, False)
+                                producto.nueva_accion(segundo, actual.linea.numero, True, False, componente=actual.linea.componente_actual)
                                 producto.segundos_ensamblando += 1
                             if producto.segundos_ensamblando == actual.linea.tiempo_ensamblaje:
                                 if comando_requiere_ensamblar.es_ultimo:
@@ -198,6 +225,7 @@ class Producto:
         self.nombre = nombre
         self.listado_comandos = listado_comandos
         self.ensamblado = ensamblado
+        self.segundos_ensamblaje_total = 0
         self.listado_acciones = Lista_Acciones()
         self.segundos_ensamblando = 0
     
@@ -235,6 +263,13 @@ class Lista_Productos:
                 return True
             actual = actual.siguiente
         return False
+
+    def producto_ensamblado(self, nombre_producto):
+        actual = self.primer_producto
+        while actual:
+            if actual.producto.nombre == nombre_producto:
+                return actual.producto.ensamblado
+            actual = actual.siguiente
     
     def devolver_producto(self, nombre_producto):
         actual = self.primer_producto
@@ -373,7 +408,7 @@ class Accion:
         self.segundo = segundo
         self.linea = linea
         if ensamblando is True:
-            self.tipo_accion = "Ensamblando"
+            self.tipo_accion = f"Ensamblando C{componente}"
         elif moviendose is True:
             self.tipo_accion = f"Moviendose a C{componente}"
         else:
