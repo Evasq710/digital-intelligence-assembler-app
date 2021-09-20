@@ -1,4 +1,4 @@
-from tkinter import END
+from tkinter import END, ttk
 
 # ========== MAQUINAS ==========
 class Maquina:
@@ -30,6 +30,47 @@ class Lista_Maquinas:
         actual = self.primer_maquina
         while actual:
             listbox.insert(END, actual.maquina.nombre_archivo)
+            actual = actual.siguiente
+
+    def listbox_productos_cargados(self, listbox):
+        actual = self.primer_maquina
+        while actual:
+            actual.maquina.listado_productos.insertar_nombre_productos_LB(listbox)
+            actual = actual.siguiente
+    
+    def cantidad_lineas(self, nombre_producto):
+        actual = self.primer_maquina
+        while actual:
+            encontrado = actual.maquina.listado_productos.producto_en_maquina(nombre_producto)
+            if encontrado:
+                return actual.maquina.cantidad_lineas
+            actual = actual.siguiente
+        return False
+    
+    def ensamblar_producto(self, nombre_producto, treeview):
+        actual = self.primer_maquina
+        while actual:
+            product_assembling = actual.maquina.listado_productos.devolver_producto(nombre_producto)
+            if product_assembling is not None:
+                #Cabeceras
+                for n in range(actual.maquina.cantidad_lineas + 1):
+                    if n == 0:
+                        treeview.column(f"#{n}", width = 50)
+                        treeview.heading(f"#{n}", text = "Tiempo")
+                    else:
+                        treeview.heading(f"#{n}", text = f"Línea {n}")
+                actual.maquina.listado_lineas.pendientes_por_linea(product_assembling.listado_comandos)
+                #Acciones por segundo
+                segundos = 0
+                while True:
+                    segundos += 1
+                    actual.maquina.listado_lineas.acciones_por_segundo(segundos, product_assembling)
+                    if product_assembling.ensamblado:
+                        #Filas
+                        for i in range(segundos):
+                            treeview.insert("", END, text=f"{i+1}", values=product_assembling.listado_acciones.devolver_acciones(i+1))
+                        break
+                break
             actual = actual.siguiente
 
 # ========== LINEAS DE PRODUCCIÓN EN MÁQUINA ==========
@@ -71,7 +112,54 @@ class Lista_Lineas:
             actual.linea.crear_componentes_pendientes(listado_comandos_producto)
             actual = actual.siguiente
 
-# ========== COMPONENTES EN LINEA ==========
+    def acciones_por_segundo(self, segundo, producto):
+        actual = self.primer_linea
+        componente_ensamblado = False
+        while actual:
+            componentes_pendientes = actual.linea.listado_componentes_pendientes
+            hay_pendientes = componentes_pendientes.hay_componentes_pendientes()
+            if hay_pendientes:
+                if actual.linea.componente_actual == componentes_pendientes.primer_componente.numero:
+                    if producto.listado_comandos.ensamblando_otro_componente(actual.linea.numero, actual.linea.componente_actual):
+                        producto.nueva_accion(segundo, actual.linea.numero, False, False)
+                    else:
+                        comando_requiere_ensamblar = producto.listado_comandos.devolver_requiere_ensamblar()
+                        if actual.linea.numero == comando_requiere_ensamblar.linea and actual.linea.componente_actual == comando_requiere_ensamblar.componente:
+                            if comando_requiere_ensamblar.ensamblando:
+                                producto.nueva_accion(segundo, actual.linea.numero, True, False)
+                                producto.segundos_ensamblando += 1
+                            else:
+                                comando_requiere_ensamblar.ensamblando = True
+                                producto.nueva_accion(segundo, actual.linea.numero, True, False)
+                                producto.segundos_ensamblando += 1
+                            if producto.segundos_ensamblando == actual.linea.tiempo_ensamblaje:
+                                if comando_requiere_ensamblar.es_ultimo:
+                                    comando_requiere_ensamblar.requiere_ensamblar = False
+                                    producto.ensamblado = True
+                                    componente_ensamblado = True
+                                    print(f"Ensamblado componente L{comando_requiere_ensamblar.linea}C{comando_requiere_ensamblar.componente}")
+                                    print("Componente ensamblado totalmente")
+                                else:
+                                    print(f"Ensamblado componente L{comando_requiere_ensamblar.linea}C{comando_requiere_ensamblar.componente}")
+                                    componente_ensamblado = True
+                                    producto.segundos_ensamblando = 0
+                                    componentes_pendientes.eliminar_primer_componente_pendiente()
+                        else:
+                            producto.nueva_accion(segundo, actual.linea.numero, False, False)
+                elif actual.linea.componente_actual < componentes_pendientes.primer_componente.numero:
+                    actual.linea.componente_actual += 1
+                    producto.nueva_accion(segundo, actual.linea.numero, False, True, componente=actual.linea.componente_actual)
+                else:
+                    actual.linea.componente_actual = actual.linea.componente_actual - 1
+                    producto.nueva_accion(segundo, actual.linea.numero, False, True, componente=actual.linea.componente_actual)
+            else:
+                producto.nueva_accion(segundo, actual.linea.numero, False, False)
+            actual = actual.siguiente
+        if componente_ensamblado:
+            comando_requiere_ensamblar.ensamblando = False
+            producto.listado_comandos.estado_requiere_siguiente()
+
+# ========== COMPONENTES EN LINEA, TODOS Y PENDIENTES ==========
 class Nodo_Componente:
     def __init__(self, numero = None, siguiente = None):
         self.numero = numero
@@ -90,15 +178,31 @@ class Lista_Componentes:
                 componente_actual = componente_actual.siguiente
             componente_actual.siguiente = Nodo_Componente(numero=numero_nuevo_componente)
     
-    def eliminar_componentes_pendientes(self):
+    def hay_componentes_pendientes(self):
         if self.primer_componente:
-            self.primer_componente = None
+            return True
+        return False
+    
+    def eliminar_primer_componente_pendiente(self):
+        actual = self.primer_componente
+        self.primer_componente = actual.siguiente
+        actual.siguiente = None
+
+    # def eliminar_componentes_pendientes(self):
+    #     if self.primer_componente:
+    #         self.primer_componente = None
 
 # ========== PRODUCTOS EN MÁQUINA ==========
 class Producto:
-    def __init__(self, nombre, listado_comandos):
+    def __init__(self, nombre, listado_comandos, ensamblado = False):
         self.nombre = nombre
         self.listado_comandos = listado_comandos
+        self.ensamblado = ensamblado
+        self.listado_acciones = Lista_Acciones()
+        self.segundos_ensamblando = 0
+    
+    def nueva_accion(self, segundo, linea, ensamblando, moviendose, componente=None):
+        self.listado_acciones.insertar(Accion(segundo, linea, ensamblando, moviendose, componente))
 
 class Nodo_Producto:
     def __init__(self, producto = None, siguiente = None):
@@ -118,15 +222,36 @@ class Lista_Productos:
                 producto_actual = producto_actual.siguiente
             producto_actual.siguiente = Nodo_Producto(producto=nuevo_producto)
 
+    def insertar_nombre_productos_LB(self, listbox):
+        actual = self.primer_producto
+        while actual:
+            listbox.insert(END, actual.producto.nombre)
+            actual = actual.siguiente
+    
+    def producto_en_maquina(self, nombre_producto):
+        actual = self.primer_producto
+        while actual:
+            if actual.producto.nombre == nombre_producto:
+                return True
+            actual = actual.siguiente
+        return False
+    
+    def devolver_producto(self, nombre_producto):
+        actual = self.primer_producto
+        while actual:
+            if actual.producto.nombre == nombre_producto:
+                return actual.producto
+            actual = actual.siguiente
+        return None
+
 # ========== COMANDOS EN PRODUCTO ==========
 class Comando:
-    def __init__(self, linea, componente, requiere_ensamblar = False, es_ultimo = False, ensamblando = False, nothing = False):
+    def __init__(self, linea, componente, requiere_ensamblar = False, es_ultimo = False, ensamblando = False):
         self.linea = linea
         self.componente = componente
         self.requiere_ensamblar = requiere_ensamblar
         self.es_ultimo = es_ultimo
         self.ensamblando = ensamblando
-        self.nothing = nothing
 
 class Nodo_Comando:
     def __init__(self, comando = None, siguiente = None):
@@ -161,6 +286,37 @@ class Lista_Comandos:
                 listado_pendientes.insertar(actual.comando.componente)
             actual = actual.siguiente
         return listado_pendientes
+    
+    def ensamblando_otro_componente(self, linea_actual, componente_actual):
+        actual = self.primer_comando
+        ensamblando_otro = False
+        while actual:
+            if actual.comando.componente != componente_actual:
+                if actual.comando.ensamblando is True:
+                    ensamblando_otro = True
+                    break
+            elif actual.comando.linea != linea_actual:
+                if actual.comando.ensamblando is True:
+                    ensamblando_otro = True
+                    break
+            actual = actual.siguiente
+        return ensamblando_otro
+    
+    def devolver_requiere_ensamblar(self):
+        actual = self.primer_comando
+        while actual:
+            if actual.comando.requiere_ensamblar:
+                return actual.comando
+            actual = actual.siguiente
+    
+    def estado_requiere_siguiente(self):
+        actual = self.primer_comando
+        while actual:
+            if actual.comando.requiere_ensamblar:
+                actual.comando.requiere_ensamblar = False
+                actual.siguiente.comando.requiere_ensamblar = True
+                break
+            actual = actual.siguiente
 
 # ========== SIMULACIONES DE ENSAMBLAJE DE PRODUCTOS ==========
 class Simulacion:
@@ -209,3 +365,47 @@ class Lista_Nombres_Productos:
             while nombre_actual.siguiente:
                 nombre_actual = nombre_actual.siguiente
             nombre_actual.siguiente = Nodo_Nombre_Producto(nombre_producto=nuevo_nombre)
+    
+# ========== ACCIONES AL ENSAMBLAR UN PRODUCTO ==========
+
+class Accion:
+    def __init__(self, segundo, linea, ensamblando, moviendose, componente, tipo_accion = "No hacer nada"):
+        self.segundo = segundo
+        self.linea = linea
+        if ensamblando is True:
+            self.tipo_accion = "Ensamblando"
+        elif moviendose is True:
+            self.tipo_accion = f"Moviendose a C{componente}"
+        else:
+            self.tipo_accion = tipo_accion
+
+class Nodo_Accion:
+    def __init__(self, accion = None, siguiente = None):
+        self.accion = accion
+        self.siguiente = siguiente
+    
+class Lista_Acciones:
+    def __init__(self):
+        self.primera_accion = None
+    
+    def insertar(self, nueva_accion):
+        if self.primera_accion is None:
+            self.primera_accion = Nodo_Accion(accion=nueva_accion)
+        else:
+            accion_actual = self.primera_accion
+            while accion_actual.siguiente:
+                accion_actual = accion_actual.siguiente
+            accion_actual.siguiente = Nodo_Accion(accion=nueva_accion)
+    
+    def devolver_acciones(self, segundo):
+        actual = self.primera_accion
+        acciones = ""
+        while actual:
+            if actual.accion.segundo == segundo:
+                if acciones == "":
+                    acciones += actual.accion.tipo_accion
+                else:
+                    acciones += "$"
+                    acciones += actual.accion.tipo_accion
+            actual = actual.siguiente
+        return (acciones.split("$"))

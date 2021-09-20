@@ -1,6 +1,6 @@
 from xml.etree import ElementTree as ET
 from tkinter import *
-from tkinter import filedialog
+from tkinter import filedialog, ttk
 from clases import *
 import traceback, os
 
@@ -40,6 +40,7 @@ class Interfaz:
         load_lb3.place(x=10, y=50, width=300, height=300)
         title1= Label(self.frame3_no_file, text="No se ha cargado ninguna máquina al programa.", font=("Consolas", 20), bg="white")
         title1.place(x=320, y=200)
+        self.frame_ensamble = None
 
         self.frame2 = LabelFrame(self.window,bg="white", text="Cargar Archivo - Simulación")
         self.frame2_no_file = Frame(self.frame2, bg="white")
@@ -315,16 +316,53 @@ class Interfaz:
             load_lb.place(x=300, y=20, width=450, height=450)
             self.frame_btn_ensamblaje = Frame(self.frame3_file, bg="white")
             self.frame_btn_ensamblaje.place(x=200, y=10)
-            self.btn_producto= Button(self.frame_btn_ensamblaje, text="Ensamblar producto precargado", font=("Consolas", 14), bg="aquamarine")
+            self.btn_producto= Button(self.frame_btn_ensamblaje, text="Ensamblar producto precargado", font=("Consolas", 14), bg="aquamarine", command= lambda:[self.ensamblar_producto_precargado()])
             self.btn_producto.grid(row=0, column=0, padx=20)
             self.btn_simulacion = Button(self.frame_btn_ensamblaje, text="Ensamblar simulación precargada", font=("Consolas", 14), bg="aquamarine")
             self.btn_simulacion.grid(row=0, column=1, padx=20)
+            if self.frame_ensamble is not None:
+                self.frame_ensamble = None
         else:
             print("-> No se ha cargada ninguna máquina al programa")
 
     def ensamblar_producto_precargado(self):
         global lista_global_maquinas
-        pass
+        self.frame_ensamble = Frame(self.frame3_file, bg="white")
+        self.frame_ensamble.place(x=50, y=60, width=950, height=390)
+        lb = Label(self.frame_ensamble, text="Productos cargados al programa:", font=("Consolas", 14), bg="white")
+        lb.place(x=10, y=10)
+        self.frame3_listbox_productos = Frame(self.frame_ensamble)
+        self.frame3_listbox_productos.place(x=50, y=50, height=250)
+        scroll = Scrollbar(self.frame3_listbox_productos, orient=VERTICAL)
+        scroll.pack(side=RIGHT, fill=Y)
+        listbox_productos = Listbox(self.frame3_listbox_productos, font=("Consolas", 12), yscrollcommand=scroll.set, height=250)
+        listbox_productos.pack()
+        scroll.config(command=listbox_productos.yview)
+        lista_global_maquinas.listbox_productos_cargados(listbox_productos)
+        ensamblar_btn = Button(self.frame_ensamble, text="Ensamblar producto", font=("Consolas", 14), bg="green yellow", command=lambda:[self.ensamblar_producto_individual(listbox_productos.get(ANCHOR))])
+        ensamblar_btn.place(x=50, y=320)
+        load_img1 = PhotoImage(file="images/assembling2.png")
+        load_lb = Label(self.frame_ensamble, image=load_img1, bg="white")
+        load_lb.photo = load_img1
+        load_lb.place(x=450, y=50, width=300, height=300)
+
+    def ensamblar_producto_individual(self, nombre_producto):
+        global lista_global_maquinas
+        if nombre_producto != "":
+            lineas = lista_global_maquinas.cantidad_lineas(nombre_producto)
+            if lineas is not False:
+                self.frame3_treview = Frame(self.frame_ensamble)
+                self.frame3_treview.place(x=300, y=50, width=650, height=250)
+                treeview_ensamblaje = ttk.Treeview(self.frame3_treview, columns=[f"#{n}" for n in range(1, lineas + 1)], height=250)
+                lista_global_maquinas.ensamblar_producto(nombre_producto, treeview_ensamblaje)
+                scroll_vertical = Scrollbar(self.frame3_treview, orient=VERTICAL, command=treeview_ensamblaje.yview)
+                scroll_vertical.pack(side=RIGHT, fill=Y)
+                scroll_horizontal = Scrollbar(self.frame3_treview, orient=HORIZONTAL, command=treeview_ensamblaje.xview)
+                scroll_horizontal.pack(side=BOTTOM, fill=X)
+                treeview_ensamblaje.configure(yscrollcommand=scroll_vertical.set ,xscrollcommand = scroll_horizontal.set)
+                treeview_ensamblaje.pack()
+            else:
+                print("-> Ocurrió un error, no se encontró el producto seleccionado en la lista de máquinas cargadas")
 
 if __name__ == '__main__':
     ventana = Tk()
