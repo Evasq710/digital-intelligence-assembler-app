@@ -432,7 +432,7 @@ class Interfaz:
             Label(frame_con_scroll, text="", font=("Consolas", 14, 'bold'), bg="white").pack()
 
             try:
-                xml_generado = simulacion_escogida.listado_nombres_productos.ensamblar_productos(lista_global_maquinas, productos_no_encontrados, frame_con_scroll, simulacion_escogida.nombre)
+                reportes_generados = simulacion_escogida.listado_nombres_productos.ensamblar_productos(lista_global_maquinas, productos_no_encontrados, frame_con_scroll, simulacion_escogida.nombre)
             except:
                 traceback.print_exc()
                 print("->Ocurrió un error en el ensamblaje de la simulación " + nombre_simulacion)
@@ -445,11 +445,11 @@ class Interfaz:
                 Label(frame_con_scroll, text="¡Todos los productos han sido ensamblados correctamente!", font=("Consolas", 14, 'bold'), bg="green", fg="white").pack()
                 Label(frame_con_scroll, text="", font=("Consolas", 14, 'bold'), bg="white").pack()
 
-            if xml_generado:
-                Label(frame_con_scroll, text="¡Se ha generado el reporte XML con éxito!", font=("Consolas", 14, 'bold'), bg="green", fg="white").pack()
+            if reportes_generados:
+                Label(frame_con_scroll, text="¡Se ha generado los reportes con éxito!", font=("Consolas", 14, 'bold'), bg="green", fg="white").pack()
                 Label(frame_con_scroll, text="", font=("Consolas", 14, 'bold'), bg="white").pack()
             else:
-                Label(frame_con_scroll, text="Ocurrió un error en la generación del reporte XML :(", font=("Consolas", 14, 'bold'), bg="green", fg="white").pack()
+                Label(frame_con_scroll, text="Ocurrió un error en la generación de los reportes :(", font=("Consolas", 14, 'bold'), bg="green", fg="white").pack()
                 Label(frame_con_scroll, text="", font=("Consolas", 14, 'bold'), bg="white").pack()
 
             canvas_resultados.place(x=350, y=50, width=600, height=250)

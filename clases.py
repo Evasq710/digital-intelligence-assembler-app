@@ -87,6 +87,125 @@ class Lista_Maquinas:
                 root_salidasimulacion += producto_xml
                 root_salidasimulacion += "\n\t</ListadoProductos>"
                 root_salidasimulacion += "\n</SalidaSimulacion>"
+
+                html_simulacion = '''<!DOCTYPE html>
+                <html lang="es">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+                    <link rel="preconnect" href="https://fonts.googleapis.com">
+                    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+                    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+                    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">'''
+                html_simulacion += f'\n<link rel="stylesheet" href="{product_assembling.nombre}.css" type="text/css" />'
+                html_simulacion += '''\n    <title>Reporte HTML</title>
+                </head>
+                <body>
+                    <li style="float: left; padding-left: 3%; padding-right: 20px;"><span class="material-icons md-light md-100">precision_manufacturing</span></li>
+                    <h1>Reporte Simulación individual</h1>'''
+                producto_html = product_assembling.salida_html(actual.maquina.cantidad_lineas)
+                html_simulacion += producto_html
+                html_simulacion += '''\n    <footer>
+                        <p>Elías Abraham Vasquez Soto - 201900131</p>
+                        <p>Proyecto 1 - Laboratorio Introducción a la Programación y Computación 2 E</p>        
+                        <img src="images/logo_usac.png" width="220" height="60"/>
+                    </footer>
+
+                    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+                </body>
+                </html>'''
+
+                css_simulacion = '''html {
+                    min-height: 100%;
+                    position: relative;
+                }
+
+                body {
+                    background-color:rgb(1, 11, 26);
+                    padding-top: 20px;
+                    margin-bottom: 150px;
+                }
+
+                /* ===== Iconos de Google ===== */
+                /* Rules for sizing the icon. */
+                .material-icons.md-24 { font-size: 24px; }
+                .material-icons.md-30 { font-size: 30px; }
+                .material-icons.md-100 { font-size: 100px; }
+                /* Rules for using icons as black on a light background. */
+                .material-icons.md-dark { color: rgba(0, 0, 0, 0.54); }
+                .material-icons.md-dark.md-inactive { color: rgba(0, 0, 0, 0.26); }
+                /* Rules for using icons as white on a dark background. */
+                .material-icons.md-light { color: rgba(255, 255, 255, 1); }
+                .material-icons.md-light.md-inactive { color: rgba(255, 255, 255, 0.3); }
+
+                h1 {
+                    color: white;
+                    font-family: 'Lato', sans-serif;
+                    font-size: 75px;
+                }
+
+                .datos-reporte {
+                    background-color: rgb(255, 255, 255);
+                    padding-top: 20px;
+                    padding-bottom: 20px;
+                    padding-left: 50px;
+                    margin: 30px 100px 30px 100px;
+                }
+
+                .datos {
+                    font-family: 'Lato', sans-serif;
+                    font-size: 30px;
+                    padding-left: 20px;
+                }
+
+                .tabla-ensamblaje {
+                    overflow-x: scroll;
+                    padding-top: 20px;
+                    text-align: center;
+                    font-family: 'Lato', sans-serif;
+                    font-size: 20px;
+                    letter-spacing: 1px;
+                    width: 96%;
+                }
+
+                table {
+                    width: 100%;
+                    table-layout: fixed;
+                }
+
+                table td, th{    
+                    color: white;
+                    width: 200px;
+                }
+
+                table #tiempo {
+                    width: 100px;
+                }
+
+                #uno {
+                    background-color: rgb(61, 57, 48);
+                }
+
+                #dos {
+                    background-color: rgb(54, 1, 1);
+                }
+
+                footer {
+                    color: white;
+                    line-height: 10px;
+                    text-align: center;
+                    padding-top: 20px;
+                    padding-bottom: 5px;
+                    font-size: 15px;
+                    font-family: 'Lato', sans-serif;
+                    position: absolute;
+                    bottom: 0;
+                    width: 100%;
+                    background-image: url("images/footer.png");
+                }'''
+
                 try:
                     root = ET.fromstring(root_salidasimulacion)
                     tree_xml_salida = ET.ElementTree(element=root)
@@ -95,6 +214,23 @@ class Lista_Maquinas:
                 except Exception as e:
                     print(e)
                     print("--> No pudo crearse el archivo XML.")
+                try:
+                    reporte_html = open(f"Reportes HTML/{product_assembling.nombre}.html", "w",encoding="utf8")
+                    reporte_html.write(html_simulacion)
+                    reporte_html.close()
+                    print("--> El reporte de simulación HTML se creo exitosamente.")
+                except Exception as e:
+                    print(e)
+                    print("--> No pudo crearse el archivo HTML.")
+                try:
+                    reporte_css = open(f"Reportes HTML/{product_assembling.nombre}.css", "w",encoding="utf8")
+                    reporte_css.write(css_simulacion)
+                    reporte_css.close()
+                    print("--> El CSS del reporte de simulación se creo exitosamente.")
+                except Exception as e:
+                    print(e)
+                    print("--> No pudo crearse el archivo CSS.")
+                
                 return segundos
             actual = actual.siguiente
     
@@ -120,6 +256,124 @@ class Lista_Maquinas:
                 root_salidasimulacion += producto_xml
                 root_salidasimulacion += "\n\t</ListadoProductos>"
                 root_salidasimulacion += "\n</SalidaSimulacion>"
+
+                html_simulacion = '''<!DOCTYPE html>
+                <html lang="es">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+                    <link rel="preconnect" href="https://fonts.googleapis.com">
+                    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+                    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+                    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">'''
+                html_simulacion += f'\n<link rel="stylesheet" href="{product_assembling.nombre}.css" type="text/css" />'
+                html_simulacion += '''\n    <title>Reporte HTML</title>
+                </head>
+                <body>
+                    <li style="float: left; padding-left: 3%; padding-right: 20px;"><span class="material-icons md-light md-100">precision_manufacturing</span></li>
+                    <h1>Reporte Simulación individual</h1>'''
+                producto_html = product_assembling.salida_html(actual.maquina.cantidad_lineas)
+                html_simulacion += producto_html
+                html_simulacion += '''\n    <footer>
+                        <p>Elías Abraham Vasquez Soto - 201900131</p>
+                        <p>Proyecto 1 - Laboratorio Introducción a la Programación y Computación 2 E</p>        
+                        <img src="images/logo_usac.png" width="220" height="60"/>
+                    </footer>
+
+                    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+                </body>
+                </html>'''
+
+                css_simulacion = '''html {
+                    min-height: 100%;
+                    position: relative;
+                }
+
+                body {
+                    background-color:rgb(1, 11, 26);
+                    padding-top: 20px;
+                    margin-bottom: 150px;
+                }
+
+                /* ===== Iconos de Google ===== */
+                /* Rules for sizing the icon. */
+                .material-icons.md-24 { font-size: 24px; }
+                .material-icons.md-30 { font-size: 30px; }
+                .material-icons.md-100 { font-size: 100px; }
+                /* Rules for using icons as black on a light background. */
+                .material-icons.md-dark { color: rgba(0, 0, 0, 0.54); }
+                .material-icons.md-dark.md-inactive { color: rgba(0, 0, 0, 0.26); }
+                /* Rules for using icons as white on a dark background. */
+                .material-icons.md-light { color: rgba(255, 255, 255, 1); }
+                .material-icons.md-light.md-inactive { color: rgba(255, 255, 255, 0.3); }
+
+                h1 {
+                    color: white;
+                    font-family: 'Lato', sans-serif;
+                    font-size: 75px;
+                }
+
+                .datos-reporte {
+                    background-color: rgb(255, 255, 255);
+                    padding-top: 20px;
+                    padding-bottom: 20px;
+                    padding-left: 50px;
+                    margin: 30px 100px 30px 100px;
+                }
+
+                .datos {
+                    font-family: 'Lato', sans-serif;
+                    font-size: 30px;
+                    padding-left: 20px;
+                }
+
+                .tabla-ensamblaje {
+                    overflow-x: scroll;
+                    padding-top: 20px;
+                    text-align: center;
+                    font-family: 'Lato', sans-serif;
+                    font-size: 20px;
+                    letter-spacing: 1px;
+                    width: 96%;
+                }
+
+                table {
+                    width: 100%;
+                    table-layout: fixed;
+                }
+
+                table td, th{    
+                    color: white;
+                    width: 200px;
+                }
+
+                table #tiempo {
+                    width: 100px;
+                }
+
+                #uno {
+                    background-color: rgb(61, 57, 48);
+                }
+
+                #dos {
+                    background-color: rgb(54, 1, 1);
+                }
+
+                footer {
+                    color: white;
+                    line-height: 10px;
+                    text-align: center;
+                    padding-top: 20px;
+                    padding-bottom: 5px;
+                    font-size: 15px;
+                    font-family: 'Lato', sans-serif;
+                    position: absolute;
+                    bottom: 0;
+                    width: 100%;
+                    background-image: url("images/footer.png");
+                }'''
                 try:
                     root = ET.fromstring(root_salidasimulacion)
                     tree_xml_salida = ET.ElementTree(element=root)
@@ -128,6 +382,22 @@ class Lista_Maquinas:
                 except Exception as e:
                     print(e)
                     print("--> No pudo crearse el archivo XML individual.")
+                try:
+                    reporte_html = open(f"Reportes HTML/{product_assembling.nombre}.html", "w",encoding="utf8")
+                    reporte_html.write(html_simulacion)
+                    reporte_html.close()
+                    print("--> El reporte de simulación HTML se creo exitosamente.")
+                except Exception as e:
+                    print(e)
+                    print("--> No pudo crearse el archivo HTML.")
+                try:
+                    reporte_css = open(f"Reportes HTML/{product_assembling.nombre}.css", "w",encoding="utf8")
+                    reporte_css.write(css_simulacion)
+                    reporte_css.close()
+                    print("--> El CSS del reporte de simulación se creo exitosamente.")
+                except Exception as e:
+                    print(e)
+                    print("--> No pudo crearse el archivo CSS.")
                 return product_assembling.segundos_ensamblaje_total
             actual = actual.siguiente
 
@@ -307,12 +577,38 @@ class Producto:
         for i in range(self.segundos_ensamblaje_total):
             segundo = i+1
             producto_xml += f'\n\t\t\t\t<Tiempo NoSegundo="{segundo}">'
-            lineas_ensamblaje = self.listado_acciones.acciones_por_segundo(segundo)
+            lineas_ensamblaje = self.listado_acciones.acciones_por_segundo_XML(segundo)
             producto_xml += lineas_ensamblaje
             producto_xml += '\n\t\t\t\t</Tiempo>'
         producto_xml += "\n\t\t\t</ElaboracionOptima>"
         producto_xml += "\n\t\t</Producto>"
         return producto_xml
+    
+    def salida_html(self, num_lineas):
+        producto_html = f'''\n    <div class="datos-reporte">
+            <p class="datos">Producto: {self.nombre}</p>
+            <p class="datos">Tiempo óptimo de ensamblaje: {self.segundos_ensamblaje_total} segundos</p>
+                <div class="tabla-ensamblaje">
+                    <table class="table table-striped table-hover">
+                        <thead style="background-color: black; color: white;">
+                            <tr>
+                            <th scope="col" id="tiempo">Tiempo</th>'''
+        for i in range(num_lineas):
+            producto_html += f'\n<th scope="col">Linea {i + 1}</th>'
+        producto_html += '''\n                </tr>
+                        </thead>
+                        <tbody>'''
+        id_fila = ""
+        for i in range(self.segundos_ensamblaje_total):
+            segundo = i+1
+            id_fila = "uno" if segundo%2 == 1 else "dos"
+            lineas_ensamblaje = self.listado_acciones.acciones_por_segundo_HTML(segundo, id_fila)
+            producto_html += lineas_ensamblaje
+        producto_html += '''\n            </tbody>
+                </table>
+            </div>
+        </div>'''
+        return producto_html
 
 class Nodo_Producto:
     def __init__(self, producto = None, siguiente = None):
@@ -505,6 +801,25 @@ class Lista_Nombres_Productos:
         root_salidasimulacion = "<SalidaSimulacion>"
         root_salidasimulacion += f"\n\t<Nombre>{nombre_simulacion}</Nombre>"
         root_salidasimulacion += "\n\t<ListadoProductos>"
+
+        html_simulacion = '''<!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8">
+            <meta http-equiv="X-UA-Compatible" content="IE=edge">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+            <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">'''
+        html_simulacion += f'\n<link rel="stylesheet" href="{nombre_simulacion}.css" type="text/css" />'
+        html_simulacion += f'''\n    <title>Reporte HTML</title>
+        </head>
+        <body>
+            <li style="float: left; padding-left: 3%; padding-right: 20px;"><span class="material-icons md-light md-100">precision_manufacturing</span></li>
+            <h1>Reporte Simulación {nombre_simulacion}</h1>'''
+
         actual = self.primer_nombre
         while actual:
             producto_cargado = lista_maquinas.boolean_producto_cargado(actual.nombre_producto)
@@ -525,6 +840,9 @@ class Lista_Nombres_Productos:
                     Label(frame_scroll, text="", font=("Consolas", 14), bg="white").pack()
                     producto_xml = producto.salida_xml()
                     root_salidasimulacion += producto_xml
+                    num_lineas = lista_maquinas.cantidad_lineas(producto.nombre)
+                    producto_html = producto.salida_html(num_lineas)
+                    html_simulacion += producto_html
                 else:
                     ensamblado = lista_maquinas.ensamblar_por_simulacion(actual.nombre_producto)
                     if ensamblado:
@@ -542,23 +860,148 @@ class Lista_Nombres_Productos:
                         Label(frame_scroll, text="", font=("Consolas", 14), bg="white").pack()
                         producto_xml = producto.salida_xml()
                         root_salidasimulacion += producto_xml
+                        num_lineas = lista_maquinas.cantidad_lineas(producto.nombre)
+                        producto_html = producto.salida_html(num_lineas)
+                        html_simulacion += producto_html
                     else:
                         print("Ocurrió un error, no se encontró " + producto.nombre + " para ensamblaje")
             else:
                 lista_no_encontrados.insertar(actual.nombre_producto)
             actual = actual.siguiente
+
         root_salidasimulacion += "\n\t</ListadoProductos>"
         root_salidasimulacion += "\n</SalidaSimulacion>"
+
+        html_simulacion += '''    <footer>
+                <p>Elías Abraham Vasquez Soto - 201900131</p>
+                <p>Proyecto 1 - Laboratorio Introducción a la Programación y Computación 2 E</p>        
+                <img src="images/logo_usac.png" width="220" height="60"/>
+            </footer>
+
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+        </body>
+        </html>'''
+
+        css_simulacion = '''html {
+            min-height: 100%;
+            position: relative;
+        }
+
+        body {
+            background-color:rgb(1, 11, 26);
+            padding-top: 20px;
+            margin-bottom: 150px;
+        }
+
+        /* ===== Iconos de Google ===== */
+        /* Rules for sizing the icon. */
+        .material-icons.md-24 { font-size: 24px; }
+        .material-icons.md-30 { font-size: 30px; }
+        .material-icons.md-100 { font-size: 100px; }
+        /* Rules for using icons as black on a light background. */
+        .material-icons.md-dark { color: rgba(0, 0, 0, 0.54); }
+        .material-icons.md-dark.md-inactive { color: rgba(0, 0, 0, 0.26); }
+        /* Rules for using icons as white on a dark background. */
+        .material-icons.md-light { color: rgba(255, 255, 255, 1); }
+        .material-icons.md-light.md-inactive { color: rgba(255, 255, 255, 0.3); }
+
+        h1 {
+            color: white;
+            font-family: 'Lato', sans-serif;
+            font-size: 75px;
+        }
+
+        .datos-reporte {
+            background-color: rgb(255, 255, 255);
+            padding-top: 20px;
+            padding-bottom: 20px;
+            padding-left: 50px;
+            margin: 30px 100px 30px 100px;
+        }
+
+        .datos {
+            font-family: 'Lato', sans-serif;
+            font-size: 30px;
+            padding-left: 20px;
+        }
+
+        .tabla-ensamblaje {
+            overflow-x: scroll;
+            padding-top: 20px;
+            text-align: center;
+            font-family: 'Lato', sans-serif;
+            font-size: 20px;
+            letter-spacing: 1px;
+            width: 96%;
+        }
+
+        table {
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        table td, th{    
+            color: white;
+            width: 200px;
+        }
+
+        table #tiempo {
+            width: 100px;
+        }
+
+        #uno {
+            background-color: rgb(61, 57, 48);
+        }
+
+        #dos {
+            background-color: rgb(54, 1, 1);
+        }
+
+        footer {
+            color: white;
+            line-height: 10px;
+            text-align: center;
+            padding-top: 20px;
+            padding-bottom: 5px;
+            font-size: 15px;
+            font-family: 'Lato', sans-serif;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background-image: url("images/footer.png");
+        }'''
+
+        reportes_generados = True
+
         try:
             root = ET.fromstring(root_salidasimulacion)
             tree_xml_salida = ET.ElementTree(element=root)
             tree_xml_salida.write(f"Salidas XML/{nombre_simulacion}.xml", encoding="utf-8", xml_declaration=True)
             print("--> El archivo de simulación XML se creo exitosamente.")
-            return True
         except Exception as e:
             print(e)
             print("--> No pudo crearse el archivo XML.")
-            return False
+            reportes_generados = False
+        try:
+            reporte_html = open(f"Reportes HTML/{nombre_simulacion}.html", "w",encoding="utf8")
+            reporte_html.write(html_simulacion)
+            reporte_html.close()
+            print("--> El reporte de simulación HTML se creo exitosamente.")
+        except Exception as e:
+            print(e)
+            print("--> No pudo crearse el archivo HTML.")
+            reportes_generados = False
+        try:
+            reporte_css = open(f"Reportes HTML/{nombre_simulacion}.css", "w",encoding="utf8")
+            reporte_css.write(css_simulacion)
+            reporte_css.close()
+            print("--> El CSS del reporte de simulación se creo exitosamente.")
+        except Exception as e:
+            print(e)
+            print("--> No pudo crearse el archivo CSS.")
+            reportes_generados = False
+        
+        return reportes_generados
     
     def lb_productos_no_encontrados(self, frame_scroll):
         actual = self.primer_nombre
@@ -610,11 +1053,27 @@ class Lista_Acciones:
             actual = actual.siguiente
         return (acciones.split("$"))
     
-    def acciones_por_segundo(self, segundo):
+    def acciones_por_segundo_XML(self, segundo):
         actual = self.primera_accion
         lineas_ensamblaje = ""
         while actual:
             if actual.accion.segundo == segundo:
                 lineas_ensamblaje += f'\n\t\t\t\t\t<LineaEnsamblaje NoLinea="{actual.accion.linea}">{actual.accion.tipo_accion}</LineaEnsamblaje>'
             actual = actual.siguiente
+        return lineas_ensamblaje
+    
+    def acciones_por_segundo_HTML(self, segundo, id_fila):
+        actual = self.primera_accion
+        lineas_ensamblaje = f'''\n                <tr id="{id_fila}">
+                    <th scope="row" id="tiempo">{segundo}</th>'''
+        linea_actual = 1
+        while actual:
+            if actual.accion.segundo == segundo:
+                if actual.accion.linea == linea_actual:
+                    lineas_ensamblaje += f'\n                <td>{actual.accion.tipo_accion}</td>'
+                    actual = self.primera_accion
+                    linea_actual += 1
+                    continue
+            actual = actual.siguiente
+        lineas_ensamblaje += '                </tr>'
         return lineas_ensamblaje
