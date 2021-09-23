@@ -1,4 +1,4 @@
-from tkinter import END, font, ttk
+from tkinter import END, Label, Text
 
 # ========== MAQUINAS ==========
 class Maquina:
@@ -100,6 +100,42 @@ class Lista_Maquinas:
                 return product_assembling.segundos_ensamblaje_total
             actual = actual.siguiente
 
+    def boolean_producto_cargado(self, nombre_producto):
+        actual = self.primer_maquina
+        encontrado = False
+        while actual:
+            encontrado = actual.maquina.listado_productos.producto_en_maquina(nombre_producto)
+            if encontrado:
+                break
+            actual = actual.siguiente
+        return encontrado
+    
+    def obtener_producto(self, nombre_producto):
+        actual = self.primer_maquina
+        while actual:
+            product = actual.maquina.listado_productos.devolver_producto(nombre_producto)
+            if product is not None:
+                return product
+            actual = actual.siguiente
+    
+    def ensamblar_por_simulacion(self, nombre_producto):
+        actual = self.primer_maquina
+        while actual:
+            product_assembling = actual.maquina.listado_productos.devolver_producto(nombre_producto)
+            if product_assembling is not None:
+                actual.maquina.listado_lineas.pendientes_por_linea(product_assembling.listado_comandos)
+                #Acciones por segundo
+                segundos = 0
+                while True:
+                    segundos += 1
+                    actual.maquina.listado_lineas.acciones_por_segundo(segundos, product_assembling)
+                    if product_assembling.ensamblado:
+                        product_assembling.segundos_ensamblaje_total = segundos
+                        break
+                return True
+            actual = actual.siguiente
+        return False
+
 # ========== LINEAS DE PRODUCCIÓN EN MÁQUINA ==========
 class Linea:
     def __init__(self, numero, cantidad_componentes, tiempo_ensamblaje):
@@ -165,7 +201,7 @@ class Lista_Lineas:
                                     producto.ensamblado = True
                                     componente_ensamblado = True
                                     print(f"Ensamblado componente L{comando_requiere_ensamblar.linea}C{comando_requiere_ensamblar.componente}")
-                                    print("Componente ensamblado totalmente")
+                                    print("->Producto ensamblado totalmente")
                                 else:
                                     print(f"Ensamblado componente L{comando_requiere_ensamblar.linea}C{comando_requiere_ensamblar.componente}")
                                     componente_ensamblado = True
@@ -352,12 +388,23 @@ class Lista_Comandos:
                 actual.siguiente.comando.requiere_ensamblar = True
                 break
             actual = actual.siguiente
+    
+    def devolver_str_comandos(self):
+        comandos =""
+        actual = self.primer_comando
+        while actual:
+            if actual.siguiente is not None:
+                comandos += "L" + str(actual.comando.linea) + "C" + str(actual.comando.componente) + " -> "
+            else:
+                comandos += "L" + str(actual.comando.linea) + "C" + str(actual.comando.componente)
+            actual = actual.siguiente
+        return comandos
 
 # ========== SIMULACIONES DE ENSAMBLAJE DE PRODUCTOS ==========
 class Simulacion:
     def __init__(self, nombre, listado_nombres_productos):
         self.nombre = nombre
-        self.listado_nombre_productos = listado_nombres_productos
+        self.listado_nombres_productos = listado_nombres_productos
 
 class Nodo_Simulacion:
     def __init__(self, simulacion = None, siguiente = None):
@@ -382,6 +429,13 @@ class Lista_Simulaciones:
         while actual:
             listbox.insert(END, actual.simulacion.nombre)
             actual = actual.siguiente
+    
+    def retornar_simulacion(self, nombre_simulacion):
+        actual = self.primer_simulacion
+        while actual:
+            if actual.simulacion.nombre == nombre_simulacion:
+                return actual.simulacion
+            actual = actual.siguiente
 
 class Nodo_Nombre_Producto:
     def __init__(self, nombre_producto = None, siguiente = None):
@@ -400,6 +454,52 @@ class Lista_Nombres_Productos:
             while nombre_actual.siguiente:
                 nombre_actual = nombre_actual.siguiente
             nombre_actual.siguiente = Nodo_Nombre_Producto(nombre_producto=nuevo_nombre)
+    
+    def ensamblar_productos(self, lista_maquinas, lista_no_encontrados, frame_scroll):
+        actual = self.primer_nombre
+        while actual:
+            producto_cargado = lista_maquinas.boolean_producto_cargado(actual.nombre_producto)
+            if producto_cargado:
+                producto_ensamblado = lista_maquinas.boolean_producto_ensamblado(actual.nombre_producto)
+                if producto_ensamblado:
+                    producto = lista_maquinas.obtener_producto(actual.nombre_producto)
+                    Label(frame_scroll, text="Producto ensamblado: " + producto.nombre, font=("Consolas", 14), bg="white").pack()
+                    Label(frame_scroll, text="Tiempo más óptimo de ensamblaje: " + str(producto.segundos_ensamblaje_total) + " segundos", font=("Consolas", 14, 'bold'), bg="white").pack()
+                    Label(frame_scroll, text="Componentes ensamblados:", font=("Consolas", 14), bg="white").pack()
+                    comandos = producto.listado_comandos.devolver_str_comandos()             
+                    t_comandos = Text(frame_scroll, font=("Consolas", 14))
+                    t_comandos.tag_configure("centrado", justify='center')
+                    t_comandos.insert("1.0", comandos)
+                    t_comandos.tag_add("centrado", "1.0")
+                    t_comandos.config(bg="white", width=40, height=2, state='disabled')
+                    t_comandos.pack()       
+                    Label(frame_scroll, text="", font=("Consolas", 14), bg="white").pack()
+                else:
+                    ensamblado = lista_maquinas.ensamblar_por_simulacion(actual.nombre_producto)
+                    if ensamblado:
+                        producto = lista_maquinas.obtener_producto(actual.nombre_producto)
+                        Label(frame_scroll, text="Producto ensamblado: " + producto.nombre, font=("Consolas", 14), bg="white").pack()
+                        Label(frame_scroll, text="Tiempo más óptimo de ensamblaje: " + str(producto.segundos_ensamblaje_total) + " segundos", font=("Consolas", 14, 'bold'), bg="white").pack()
+                        Label(frame_scroll, text="Componentes ensamblados:", font=("Consolas", 14), bg="white").pack()
+                        comandos = producto.listado_comandos.devolver_str_comandos()             
+                        t_comandos = Text(frame_scroll, font=("Consolas", 14))
+                        t_comandos.tag_configure("centrado", justify='center')
+                        t_comandos.insert("1.0", comandos)
+                        t_comandos.tag_add("centrado", "1.0")
+                        t_comandos.config(bg="white", width=40, height=2, state='disabled')
+                        t_comandos.pack()       
+                        Label(frame_scroll, text="", font=("Consolas", 14), bg="white").pack()
+                    else:
+                        print("Ocurrió un error, no se encontró " + producto.nombre + " para ensamblaje")
+            else:
+                lista_no_encontrados.insertar(actual.nombre_producto)
+            actual = actual.siguiente
+    
+    def lb_productos_no_encontrados(self, frame_scroll):
+        actual = self.primer_nombre
+        while actual:
+            Label(frame_scroll, text=actual.nombre_producto, font=("Consolas", 14), bg="white").pack()
+            actual = actual.siguiente
     
 # ========== ACCIONES AL ENSAMBLAR UN PRODUCTO ==========
 

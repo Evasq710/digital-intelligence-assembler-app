@@ -1,5 +1,4 @@
 from tkinter import font
-from tkinter.font import BOLD
 from xml.etree import ElementTree as ET
 from tkinter import *
 from tkinter import filedialog, ttk
@@ -410,7 +409,42 @@ class Interfaz:
         self.lb_simulacion = None
     
     def ensamblar_productos_simulacion(self, nombre_simulacion):
-        print(nombre_simulacion)
+        global lista_global_simulaciones
+        global lista_global_maquinas
+        if nombre_simulacion != "":
+            simulacion_escogida = lista_global_simulaciones.retornar_simulacion(nombre_simulacion)
+            productos_no_encontrados = Lista_Nombres_Productos()
+            
+            self.as_lb_sim.destroy()
+            canvas_resultados = Canvas(self.frame_ensamble_simulacion, bg="white")
+            scrollbar = ttk.Scrollbar(canvas_resultados, orient="vertical", command=canvas_resultados.yview)
+            frame_con_scroll = Frame(canvas_resultados, bg="white")
+            frame_con_scroll.bind(
+                "<Configure>",
+                lambda e: canvas_resultados.configure(
+                    scrollregion=canvas_resultados.bbox("all")
+                )
+            )
+            canvas_resultados.create_window((0, 0), window=frame_con_scroll, anchor="nw", width=580)
+            canvas_resultados.configure(yscrollcommand=scrollbar.set)
+            
+            Label(frame_con_scroll, text=simulacion_escogida.nombre, font=("Consolas", 14, 'bold'), bg="black", fg="white").pack()
+            Label(frame_con_scroll, text="", font=("Consolas", 14, 'bold'), bg="white").pack()
+
+            try:
+                simulacion_escogida.listado_nombres_productos.ensamblar_productos(lista_global_maquinas, productos_no_encontrados, frame_con_scroll)
+            except:
+                traceback.print_exc()
+                print("->Ocurrió un error en el ensamblaje de la simulación " + nombre_simulacion)
+            
+            if productos_no_encontrados.primer_nombre is not None:
+                Label(frame_con_scroll, text="Productos no encontrados (deben cargarse a una máquina)", font=("Consolas", 14, 'bold'), bg="red", fg="black").pack()
+                productos_no_encontrados.lb_productos_no_encontrados(frame_con_scroll)
+            else:
+                Label(frame_con_scroll, text="¡Todos los productos han sido ensamblados correctamente!", font=("Consolas", 14, 'bold'), bg="red", fg="black").pack()
+
+            canvas_resultados.place(x=350, y=50, width=600, height=250)
+            scrollbar.pack(side="right", fill="y")
 
 if __name__ == '__main__':
     ventana = Tk()
