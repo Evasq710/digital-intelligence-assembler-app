@@ -1,4 +1,5 @@
 from tkinter import END, Label, Text
+from xml.etree import ElementTree as ET
 
 # ========== MAQUINAS ==========
 class Maquina:
@@ -79,6 +80,21 @@ class Lista_Maquinas:
                         for i in range(segundos):
                             treeview.insert("", END, text=f"{i+1}", values=product_assembling.listado_acciones.devolver_acciones(i+1))
                         break
+                root_salidasimulacion = "<SalidaSimulacion>"
+                root_salidasimulacion += f"\n\t<Nombre>Simulación Individual {product_assembling.nombre}</Nombre>"
+                root_salidasimulacion += "\n\t<ListadoProductos>"
+                producto_xml = product_assembling.salida_xml()
+                root_salidasimulacion += producto_xml
+                root_salidasimulacion += "\n\t</ListadoProductos>"
+                root_salidasimulacion += "\n</SalidaSimulacion>"
+                try:
+                    root = ET.fromstring(root_salidasimulacion)
+                    tree_xml_salida = ET.ElementTree(element=root)
+                    tree_xml_salida.write(f"Salidas XML/{product_assembling.nombre}.xml", encoding="utf-8", xml_declaration=True)
+                    print("--> El archivo de simulación XML se creo exitosamente.")
+                except Exception as e:
+                    print(e)
+                    print("--> No pudo crearse el archivo XML.")
                 return segundos
             actual = actual.siguiente
     
@@ -97,6 +113,21 @@ class Lista_Maquinas:
                         treeview.heading(f"#{n}", text = f"Línea {n}")
                 for i in range(product_assembling.segundos_ensamblaje_total):
                     treeview.insert("", END, text=f"{i+1}", values=product_assembling.listado_acciones.devolver_acciones(i+1))
+                root_salidasimulacion = "<SalidaSimulacion>"
+                root_salidasimulacion += f"\n\t<Nombre>Simulación Individual {product_assembling.nombre}</Nombre>"
+                root_salidasimulacion += "\n\t<ListadoProductos>"
+                producto_xml = product_assembling.salida_xml()
+                root_salidasimulacion += producto_xml
+                root_salidasimulacion += "\n\t</ListadoProductos>"
+                root_salidasimulacion += "\n</SalidaSimulacion>"
+                try:
+                    root = ET.fromstring(root_salidasimulacion)
+                    tree_xml_salida = ET.ElementTree(element=root)
+                    tree_xml_salida.write(f"Salidas XML/{product_assembling.nombre}.xml", encoding="utf-8", xml_declaration=True)
+                    print("--> El archivo de simulación individual XML se creo exitosamente.")
+                except Exception as e:
+                    print(e)
+                    print("--> No pudo crearse el archivo XML individual.")
                 return product_assembling.segundos_ensamblaje_total
             actual = actual.siguiente
 
@@ -267,6 +298,21 @@ class Producto:
     
     def nueva_accion(self, segundo, linea, ensamblando, moviendose, componente=None):
         self.listado_acciones.insertar(Accion(segundo, linea, ensamblando, moviendose, componente))
+    
+    def salida_xml(self):
+        producto_xml = "\n\t\t<Producto>"
+        producto_xml += f"\n\t\t\t<Nombre>{self.nombre}</Nombre>"
+        producto_xml += f"\n\t\t\t<TiempoTotal>{self.segundos_ensamblaje_total}</TiempoTotal>"
+        producto_xml += "\n\t\t\t<ElaboracionOptima>"
+        for i in range(self.segundos_ensamblaje_total):
+            segundo = i+1
+            producto_xml += f'\n\t\t\t\t<Tiempo NoSegundo="{segundo}">'
+            lineas_ensamblaje = self.listado_acciones.acciones_por_segundo(segundo)
+            producto_xml += lineas_ensamblaje
+            producto_xml += '\n\t\t\t\t</Tiempo>'
+        producto_xml += "\n\t\t\t</ElaboracionOptima>"
+        producto_xml += "\n\t\t</Producto>"
+        return producto_xml
 
 class Nodo_Producto:
     def __init__(self, producto = None, siguiente = None):
@@ -455,7 +501,10 @@ class Lista_Nombres_Productos:
                 nombre_actual = nombre_actual.siguiente
             nombre_actual.siguiente = Nodo_Nombre_Producto(nombre_producto=nuevo_nombre)
     
-    def ensamblar_productos(self, lista_maquinas, lista_no_encontrados, frame_scroll):
+    def ensamblar_productos(self, lista_maquinas, lista_no_encontrados, frame_scroll, nombre_simulacion):
+        root_salidasimulacion = "<SalidaSimulacion>"
+        root_salidasimulacion += f"\n\t<Nombre>{nombre_simulacion}</Nombre>"
+        root_salidasimulacion += "\n\t<ListadoProductos>"
         actual = self.primer_nombre
         while actual:
             producto_cargado = lista_maquinas.boolean_producto_cargado(actual.nombre_producto)
@@ -474,6 +523,8 @@ class Lista_Nombres_Productos:
                     t_comandos.config(bg="white", width=40, height=2, state='disabled')
                     t_comandos.pack()       
                     Label(frame_scroll, text="", font=("Consolas", 14), bg="white").pack()
+                    producto_xml = producto.salida_xml()
+                    root_salidasimulacion += producto_xml
                 else:
                     ensamblado = lista_maquinas.ensamblar_por_simulacion(actual.nombre_producto)
                     if ensamblado:
@@ -489,11 +540,25 @@ class Lista_Nombres_Productos:
                         t_comandos.config(bg="white", width=40, height=2, state='disabled')
                         t_comandos.pack()       
                         Label(frame_scroll, text="", font=("Consolas", 14), bg="white").pack()
+                        producto_xml = producto.salida_xml()
+                        root_salidasimulacion += producto_xml
                     else:
                         print("Ocurrió un error, no se encontró " + producto.nombre + " para ensamblaje")
             else:
                 lista_no_encontrados.insertar(actual.nombre_producto)
             actual = actual.siguiente
+        root_salidasimulacion += "\n\t</ListadoProductos>"
+        root_salidasimulacion += "\n</SalidaSimulacion>"
+        try:
+            root = ET.fromstring(root_salidasimulacion)
+            tree_xml_salida = ET.ElementTree(element=root)
+            tree_xml_salida.write(f"Salidas XML/{nombre_simulacion}.xml", encoding="utf-8", xml_declaration=True)
+            print("--> El archivo de simulación XML se creo exitosamente.")
+            return True
+        except Exception as e:
+            print(e)
+            print("--> No pudo crearse el archivo XML.")
+            return False
     
     def lb_productos_no_encontrados(self, frame_scroll):
         actual = self.primer_nombre
@@ -544,3 +609,12 @@ class Lista_Acciones:
                     acciones += actual.accion.tipo_accion
             actual = actual.siguiente
         return (acciones.split("$"))
+    
+    def acciones_por_segundo(self, segundo):
+        actual = self.primera_accion
+        lineas_ensamblaje = ""
+        while actual:
+            if actual.accion.segundo == segundo:
+                lineas_ensamblaje += f'\n\t\t\t\t\t<LineaEnsamblaje NoLinea="{actual.accion.linea}">{actual.accion.tipo_accion}</LineaEnsamblaje>'
+            actual = actual.siguiente
+        return lineas_ensamblaje
