@@ -44,9 +44,9 @@ class Interfaz:
         lb_title_about = Label(frame_con_scroll, text="Acerca de la aplicación", font=("Consolas", 20), bg="white")
         lb_title_about.grid(row=0, column=0, sticky="w", padx=10, pady=10)
         
-        about = '''Digital Intelligence Assembler, es una aplicación desarrollada para la empresa Digital Intelligence, S. A., la cual simula el funcionamiento de una máquina desarrollada por la mencionada empresa, capaz de ensamblar las partes de cualquier producto, con “n” líneas de ensamblaje y cada línea de ensamblaje con “m” posibles componentes a seleccionar de forma que pueda predecir el tiempo “óptimo” para elaborar cualquier producto que pueda ser ensamblado en la máquina.\n
-La aplicación posee la capacidad de recibir 2 tipos de archivos XML, el primero, para configurar la máquina y el segundo que contendrá los productos que deben ser simulados. El usuario podrá elegir si desea ensamblar productos de manera individual, por medio de un archivo de simulación, o bien, generando un reporte de cola de secuencia, en donde puede visualizar el estado en el que el ensamblaje de cierto producto se encuentra, indicándole el segundo en el que se desea conocer el estado.\n
-Por último, el programa genera dos tipos de archivos de salida (XML y HTML) por producto o productos ensamblados, en donde se podrá visualizar todo el proceso de ensamblaje por producto.'''
+        about = '''\tDigital Intelligence Assembler, es una aplicación desarrollada para la empresa Digital Intelligence, S. A., la cual simula el funcionamiento de una máquina desarrollada por la mencionada empresa, capaz de ensamblar las partes de cualquier producto, con “n” líneas de ensamblaje y cada línea de ensamblaje con “m” posibles componentes a seleccionar de forma que pueda predecir el tiempo “óptimo” para elaborar cualquier producto que pueda ser ensamblado en la máquina.\n
+        La aplicación posee la capacidad de recibir 2 tipos de archivos XML, el primero, para configurar la máquina y el segundo que contendrá los productos que deben ser simulados. El usuario podrá elegir si desea ensamblar productos de manera individual, por medio de un archivo de simulación, o bien, generando un reporte de cola de secuencia, en donde puede visualizar el estado en el que el ensamblaje de cierto producto se encuentra, indicándole el segundo en el que se desea conocer el estado.\n
+        Por último, el programa genera dos tipos de archivos de salida (XML y HTML) por producto o productos ensamblados, en donde se podrá visualizar todo el proceso de ensamblaje por producto.'''
 
         txt_about = Text(frame_con_scroll, font=("Consolas", 14), bg="white")
         txt_about.tag_configure("izquierda", justify='left')
@@ -58,9 +58,7 @@ Por último, el programa genera dos tipos de archivos de salida (XML y HTML) por
         lb_title_info = Label(frame_con_scroll, text="Información del estudiante", font=("Consolas", 20), bg="white")
         lb_title_info.grid(row=3, column=0, sticky="w", padx=10, pady=10)
         
-        info = '''Elías Abraham Vasquez Soto
-201900131
-Laboratorio Introducción a la Programación y\nComputación 2 E'''
+        info = '''Elías Abraham Vasquez Soto\n201900131\nLaboratorio Introducción a la Programación y\nComputación 2 E'''
 
         txt_info = Text(frame_con_scroll, font=("Consolas", 14), bg="white")
         txt_info.tag_configure("izquierda", justify='left')
@@ -166,8 +164,8 @@ Laboratorio Introducción a la Programación y\nComputación 2 E'''
                     title2.config(text="Máquina configurada correctamente.")
                     title2.place(x=320, y=150)
                 else:
-                    title2.config(text="Ocurrió un error en el análisis del archivo. Revisar etiquetas.")
-                    title2.place(x=320, y=150)
+                    title2.config(text="Ocurrió un error en el análisis del archivo.\nRevisar etiquetas.")
+                    title2.place(x=320, y=135)
                 title3= Label(self.frame_file, text="Máquinas cargadas en el programa:", font=("Consolas", 20), bg="white")
                 title3.place(x=320, y=200)
                 self.frame_listbox = Frame(self.frame_file)
@@ -180,8 +178,8 @@ Laboratorio Introducción a la Programación y\nComputación 2 E'''
                 lista_global_maquinas.listbox_maquinas(listbox_maquinas)
             except Exception:
                 traceback.print_exc()
-                title2= Label(self.frame_file, text="Ocurrió un error inesperado. Ver consola :(", font=("Consolas", 20), bg="white")
-                title2.place(x=320, y=150)
+                title2= Label(self.frame_file, text="Ocurrió un error inesperado.\nVer consola :(", font=("Consolas", 20), bg="white")
+                title2.place(x=320, y=135)
                 print("-> Ocurrió un error inesperado, ver traceback.")
 
             archivo.close()
@@ -298,8 +296,8 @@ Laboratorio Introducción a la Programación y\nComputación 2 E'''
             load_lb = Label(self.frame2_file, image=load_img1, bg="white")
             load_lb.photo = load_img1
             load_lb.place(x=10, y=60, width=300, height=300)
-            title1= Label(self.frame2_file, text="El programa ha cargado archivos de simulación exitosamente.", font=("Consolas", 20), bg="white")
-            title1.place(x=320, y=100)
+            title1= Label(self.frame2_file, text="El programa ha cargado archivos de simulación\nexitosamente.", font=("Consolas", 20), bg="white")
+            title1.place(x=320, y=80)
             print("->Archivo leído con éxito")
 
             try:
@@ -311,8 +309,8 @@ Laboratorio Introducción a la Programación y\nComputación 2 E'''
                     title2.config(text="Nueva simulación guardada correctamente.")
                     title2.place(x=320, y=150)
                 else:
-                    title2.config(text="Ocurrió un error en el análisis del archivo. Revisar etiquetas.")
-                    title2.place(x=320, y=150)
+                    title2.config(text="Ocurrió un error en el análisis del archivo.\nRevisar etiquetas.")
+                    title2.place(x=320, y=135)
                 title3= Label(self.frame2_file, text="Simulaciones cargadas en el programa:", font=("Consolas", 20), bg="white")
                 title3.place(x=320, y=200)
                 self.frame2_listbox = Frame(self.frame2_file)
@@ -325,8 +323,8 @@ Laboratorio Introducción a la Programación y\nComputación 2 E'''
                 lista_global_simulaciones.listbox_simulaciones(listbox_simulaciones)
             except Exception:
                 traceback.print_exc()
-                title2= Label(self.frame2_file, text="Ocurrió un error inesperado. Ver consola :(", font=("Consolas", 20), bg="white")
-                title2.place(x=320, y=150)
+                title2= Label(self.frame2_file, text="Ocurrió un error inesperado.\nVer consola :(", font=("Consolas", 20), bg="white")
+                title2.place(x=320, y=135)
                 print("-> Ocurrió un error inesperado. Ver Traceback")
 
             archivo.close()
