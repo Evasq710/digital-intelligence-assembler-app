@@ -446,6 +446,23 @@ class Lista_Maquinas:
                 digraph_creado = product_assembled.listado_comandos.crear_cola_secuencia(nombre_producto, segundo)
                 return digraph_creado
             actual = actual.siguiente
+    
+    def ensamblar_producto_reporte_cola(self, nombre_producto):
+        actual = self.primer_maquina
+        while actual:
+            product_assembling = actual.maquina.listado_productos.devolver_producto(nombre_producto)
+            if product_assembling is not None:
+                actual.maquina.listado_lineas.pendientes_por_linea(product_assembling.listado_comandos)
+                #Acciones por segundo
+                segundos = 0
+                while True:
+                    segundos += 1
+                    actual.maquina.listado_lineas.acciones_por_segundo(segundos, product_assembling)
+                    if product_assembling.ensamblado:
+                        product_assembling.segundos_ensamblaje_total = segundos
+                        break
+            actual = actual.siguiente
+    
 
 # ========== LINEAS DE PRODUCCIÓN EN MÁQUINA ==========
 class Linea:
