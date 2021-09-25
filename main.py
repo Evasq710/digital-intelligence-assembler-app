@@ -28,8 +28,49 @@ class Interfaz:
         load_lb5 = Label(self.frame5_no_file, image=load_img5, bg="white")
         load_lb5.photo = load_img5
         load_lb5.place(x=10, y=50, width=300, height=300)
-        title5= Label(self.frame5_no_file, text="Información.", font=("Consolas", 20), bg="white")
-        title5.place(x=320, y=200)
+
+        canvas_info =  Canvas(self.frame5_no_file, bg="white")
+        scrollbar = ttk.Scrollbar(canvas_info, orient="vertical", command=canvas_info.yview)
+        frame_con_scroll = Frame(canvas_info, bg="white")
+        frame_con_scroll.bind(
+            "<Configure>",
+            lambda e: canvas_info.configure(
+                scrollregion=canvas_info.bbox("all")
+            )
+        )
+        canvas_info.create_window((0, 0), window=frame_con_scroll, anchor="nw", width=610)
+        canvas_info.configure(yscrollcommand=scrollbar.set)
+        
+        lb_title_about = Label(frame_con_scroll, text="Acerca de la aplicación", font=("Consolas", 20), bg="white")
+        lb_title_about.grid(row=0, column=0, sticky="w", padx=10, pady=10)
+        
+        about = '''Digital Intelligence Assembler, es una aplicación desarrollada para la empresa Digital Intelligence, S. A., la cual simula el funcionamiento de una máquina desarrollada por la mencionada empresa, capaz de ensamblar las partes de cualquier producto, con “n” líneas de ensamblaje y cada línea de ensamblaje con “m” posibles componentes a seleccionar de forma que pueda predecir el tiempo “óptimo” para elaborar cualquier producto que pueda ser ensamblado en la máquina.\n
+La aplicación posee la capacidad de recibir 2 tipos de archivos XML, el primero, para configurar la máquina y el segundo que contendrá los productos que deben ser simulados. El usuario podrá elegir si desea ensamblar productos de manera individual, por medio de un archivo de simulación, o bien, generando un reporte de cola de secuencia, en donde puede visualizar el estado en el que el ensamblaje de cierto producto se encuentra, indicándole el segundo en el que se desea conocer el estado.\n
+Por último, el programa genera dos tipos de archivos de salida (XML y HTML) por producto o productos ensamblados, en donde se podrá visualizar todo el proceso de ensamblaje por producto.'''
+
+        txt_about = Text(frame_con_scroll, font=("Consolas", 14), bg="white")
+        txt_about.tag_configure("izquierda", justify='left')
+        txt_about.insert("1.0", about)
+        txt_about.tag_add("izquierda", "1.0")
+        txt_about.config(width=57, height=25, state='disabled')
+        txt_about.grid(row=1, column=0, sticky="w", padx=20, pady=10)
+        
+        lb_title_info = Label(frame_con_scroll, text="Información del estudiante", font=("Consolas", 20), bg="white")
+        lb_title_info.grid(row=3, column=0, sticky="w", padx=10, pady=10)
+        
+        info = '''Elías Abraham Vasquez Soto
+201900131
+Laboratorio Introducción a la Programación y\nComputación 2 E'''
+
+        txt_info = Text(frame_con_scroll, font=("Consolas", 14), bg="white")
+        txt_info.tag_configure("izquierda", justify='left')
+        txt_info.insert("1.0", info)
+        txt_info.tag_add("izquierda", "1.0")
+        txt_info.config(width=57, height=5, state='disabled')
+        txt_info.grid(row=4, column=0, sticky="w", padx=20, pady=10)
+        
+        canvas_info.place(x=350, y=50, width=630, height=320)
+        scrollbar.pack(side="right", fill="y")
 
         self.frame4 = LabelFrame(self.window,bg="white", text="Reporte de cola de secuencia")
         self.frame4_no_file = Frame(self.frame4, bg="white")
@@ -489,6 +530,8 @@ class Interfaz:
             self.assemb_lb = Label(self.frame4_file, image=as_img, bg="white")
             self.assemb_lb.photo = as_img
             self.assemb_lb.place(x=560, y=200, width=250, height=250)
+            self.lb_dot = None
+            self.lb_png = None
         else:
             print("-> No se ha cargada ninguna máquina al programa")
     
@@ -498,11 +541,17 @@ class Interfaz:
             if segundo != "0":
                 try:
                     seg = int(segundo)
+                    self.assemb_lb.destroy()
+                    if self.lb_dot is not None:
+                        self.lb_dot.destroy()
+                    if self.lb_png is not None:
+                        self.lb_png.destroy()
                     if lista_global_maquinas.boolean_producto_ensamblado(nombre_producto):
                         print("->Producto ya ensamblado con anterioridad")
                         digraph_creado = lista_global_maquinas.reporte_cola_secuencia(nombre_producto, seg)
                         if digraph_creado:
-                            print("\n--> Archivo .dot creado exitosamente. Ver: Colas de secuencia")
+                            self.lb_dot = Label(self.frame4_file, text=f"Archivo .dot creado exitosamente.\nProducto: {nombre_producto} Segundo: {segundo}", font=("Consolas", 14), bg="green", fg="white")
+                            self.lb_dot.place(x=520, y=250)
                             try:
                                 os.chdir('Colas de secuencia')
                                 name_file_dot = f'{nombre_producto} {segundo}.dot'
@@ -512,15 +561,40 @@ class Interfaz:
                                 comando = f'dot.exe -Tpng {name_file_dot} -o {name_file_png}'
                                 os.system(comando)
                                 os.chdir('..')
-                                print("--> Archivo .png creado exitosamente. Ver: Colas de secuencia")
+                                self.lb_png = Label(self.frame4_file, text=f"Archivo .png creado exitosamente.\nProducto: {nombre_producto} Segundo: {segundo}", font=("Consolas", 14), bg="green", fg="white")
+                                self.lb_png.place(x=520, y=320)
                             except:
                                 traceback.print_exc()
-                                print("--> Ocurrió un error en la creación del archivo .png :(")
+                                self.lb_png = Label(self.frame4_file, text="Ocurrió un error en la creación del archivo .png", font=("Consolas", 14), bg="red", fg="white")
+                                self.lb_png.place(x=460, y=320)
                         else:
-                            print("--> Ocurrió un error en la creación del archivo .dot :(")
+                            self.lb_dot = Label(self.frame4_file, text="Ocurrió un error en la creación del archivo .dot", font=("Consolas", 14), bg="red", fg="white")
+                            self.lb_dot.place(x=460, y=250)
                     else:
                         print("->Producto no ha sido ensamblado")
-                        # segundos_ensamblaje = lista_global_maquinas.ensamblar_producto(nombre_producto, treeview_ensamblaje)
+                        lista_global_maquinas.ensamblar_producto_reporte_cola(nombre_producto)
+                        digraph_creado = lista_global_maquinas.reporte_cola_secuencia(nombre_producto, seg)
+                        if digraph_creado:
+                            self.lb_dot = Label(self.frame4_file, text=f"Archivo .dot creado exitosamente.\nProducto: {nombre_producto} Segundo: {segundo}", font=("Consolas", 14), bg="green", fg="white")
+                            self.lb_dot.place(x=520, y=250)
+                            try:
+                                os.chdir('Colas de secuencia')
+                                name_file_dot = f'{nombre_producto} {segundo}.dot'
+                                name_file_dot = name_file_dot.replace(' ', '_')
+                                name_file_png = f'{nombre_producto} {segundo}.png'
+                                name_file_png = name_file_png.replace(' ', '_')
+                                comando = f'dot.exe -Tpng {name_file_dot} -o {name_file_png}'
+                                os.system(comando)
+                                os.chdir('..')
+                                self.lb_png = Label(self.frame4_file, text=f"Archivo .png creado exitosamente.\nProducto: {nombre_producto} Segundo: {segundo}", font=("Consolas", 14), bg="green", fg="white")
+                                self.lb_png.place(x=520, y=320)
+                            except:
+                                traceback.print_exc()
+                                self.lb_png = Label(self.frame4_file, text="Ocurrió un error en la creación del archivo .png", font=("Consolas", 14), bg="red", fg="white")
+                                self.lb_png.place(x=460, y=320)
+                        else:
+                            self.lb_dot = Label(self.frame4_file, text="Ocurrió un error en la creación del archivo .dot", font=("Consolas", 14), bg="red", fg="white")
+                            self.lb_dot.place(x=460, y=250)
                 except:
                     traceback.print_exc()
                     print("->Caractér no válido ingresado en spinbox")
