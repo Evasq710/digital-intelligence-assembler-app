@@ -1,0 +1,12 @@
+digraph G {
+    graph[label="Ensamblaje producto 1 excel"];
+            node[style="filled", fillcolor="cornflowerblue", shape="square", fontname="Consolas"];
+    node1[label="L2C3\nSegundo: 7", color="red"];
+    node2[label="L1C1\nSegundo: 12", color="red"];
+    node3[label="L5C8\nSegundo: 18", color="red"];
+    node4[label="L2C1\nSegundo: 22", color="red"];
+    node5[label="L1C8\nSegundo: 27", color="red"];
+    node6[label="L3C5\nSegundo: 30\nENSAMBLADO", color="red", fillcolor="green"];
+    {rank="same";node1;node2;node3;node4;node5;node6};
+    node1 -> node2 -> node3 -> node4 -> node5 -> node6;
+}

@@ -1,4 +1,3 @@
-from tkinter import font
 from xml.etree import ElementTree as ET
 from tkinter import *
 from tkinter import filedialog, ttk
@@ -21,6 +20,16 @@ class Interfaz:
 
         title = Label(self.window, text="Digital Intelligence Assembler", font=("Consolas", 50, "bold"), bg="white")
         title.place(x=200, y=70)
+
+        self.frame5 = LabelFrame(self.window,bg="white", text="Ayuda")
+        self.frame5_no_file = Frame(self.frame5, bg="white")
+        self.frame5_no_file.place(x=0, y=0, relheight=1, relwidth=1)
+        load_img5 = PhotoImage(file="images/about.png")
+        load_lb5 = Label(self.frame5_no_file, image=load_img5, bg="white")
+        load_lb5.photo = load_img5
+        load_lb5.place(x=10, y=50, width=300, height=300)
+        title5= Label(self.frame5_no_file, text="Información.", font=("Consolas", 20), bg="white")
+        title5.place(x=320, y=200)
 
         self.frame4 = LabelFrame(self.window,bg="white", text="Reporte de cola de secuencia")
         self.frame4_no_file = Frame(self.frame4, bg="white")
@@ -63,7 +72,7 @@ class Interfaz:
         title1= Label(self.frame1_no_file, text="No se ha cargado ningún archivo al programa.", font=("Consolas", 20), bg="white")
         title1.place(x=320, y=200)
         
-        for frame in (self.frame1, self.frame2, self.frame3, self.frame4):
+        for frame in (self.frame1, self.frame2, self.frame3, self.frame4, self.frame5):
             frame.place(x=250, y=280, width=1050, height=480)
         
         frame_btn = Frame(self.window, bg="black")
@@ -78,10 +87,10 @@ class Interfaz:
         self.ensamblar_btn = Button(frame_btn, text="Ensamblar productos", font=("Consolas", 15), bg="light sea green", command = lambda:[self.frame3.tkraise(), self.ensamblar_productos()])
         self.ensamblar_btn.grid(row=0, column=2, padx=20)
 
-        self.reporte_cola_btn = Button(frame_btn, text="Reporte de cola de secuencia", font=("Consolas", 15), bg="light sea green", command = lambda:[self.frame4.tkraise()])
+        self.reporte_cola_btn = Button(frame_btn, text="Reporte de cola de secuencia", font=("Consolas", 15), bg="light sea green", command = lambda:[self.frame4.tkraise(), self.apartado_reporte_cola()])
         self.reporte_cola_btn.grid(row=0, column=3, padx=20)
 
-        self.ayuda_btn = Button(frame_btn, text="Ayuda", font=("Consolas", 15), bg="light sea green", command = lambda:[])
+        self.ayuda_btn = Button(frame_btn, text="Ayuda", font=("Consolas", 15), bg="light sea green", command = lambda:[self.frame5.tkraise()])
         self.ayuda_btn.grid(row=0, column=4, padx=20)
 
     def cargar_maquina(self):
@@ -454,6 +463,67 @@ class Interfaz:
 
             canvas_resultados.place(x=350, y=50, width=600, height=250)
             scrollbar.pack(side="right", fill="y")
+
+    def apartado_reporte_cola(self):
+        global lista_global_maquinas
+        if lista_global_maquinas.primer_maquina is not None:
+            self.frame4_file = Frame(self.frame4, bg="white")
+            self.frame4_file.place(x=0, y=0, relheight=1, relwidth=1)
+            lb = Label(self.frame4_file, text="Productos cargados al programa:", font=("Consolas", 14), bg="white")
+            lb.place(x=50, y=60)
+            self.frame4_listbox_productos = Frame(self.frame4_file)
+            self.frame4_listbox_productos.place(x=80, y=100, width=250, height=250)
+            scroll = Scrollbar(self.frame4_listbox_productos, orient=VERTICAL)
+            scroll.pack(side=RIGHT, fill=Y)
+            listbox_productos = Listbox(self.frame4_listbox_productos, font=("Consolas", 12), yscrollcommand=scroll.set, width=250, height=250)
+            listbox_productos.pack()
+            scroll.config(command=listbox_productos.yview)
+            lista_global_maquinas.listbox_productos_cargados(listbox_productos)
+            lb_segundos = Label(self.frame4_file, text="Escoja el segundo en el que se desea generar el\nreporte de cola de secuencia:", font=("Consolas", 14), bg="white")
+            lb_segundos.place(x=450, y=60)
+            spin_segundos = Spinbox(self.frame4_file, from_=0, to=999, font=("Consolas", 14))
+            spin_segundos.place(x=580, y=120)
+            generar_btn = Button(self.frame4_file, text="Generar reporte", font=("Consolas", 14), bg="green yellow", command=lambda:[self.generar_reporte_cola(listbox_productos.get(ANCHOR), spin_segundos.get())])
+            generar_btn.place(x=600, y=160)
+            as_img = PhotoImage(file="images/assembling2.png")
+            self.assemb_lb = Label(self.frame4_file, image=as_img, bg="white")
+            self.assemb_lb.photo = as_img
+            self.assemb_lb.place(x=560, y=200, width=250, height=250)
+        else:
+            print("-> No se ha cargada ninguna máquina al programa")
+    
+    def generar_reporte_cola(self, nombre_producto, segundo):
+        global lista_global_maquinas
+        if nombre_producto != "":
+            if segundo != "0":
+                try:
+                    seg = int(segundo)
+                    if lista_global_maquinas.boolean_producto_ensamblado(nombre_producto):
+                        print("->Producto ya ensamblado con anterioridad")
+                        digraph_creado = lista_global_maquinas.reporte_cola_secuencia(nombre_producto, seg)
+                        if digraph_creado:
+                            print("\n--> Archivo .dot creado exitosamente. Ver: Colas de secuencia")
+                            try:
+                                os.chdir('Colas de secuencia')
+                                name_file_dot = f'{nombre_producto} {segundo}.dot'
+                                name_file_dot = name_file_dot.replace(' ', '_')
+                                name_file_png = f'{nombre_producto} {segundo}.png'
+                                name_file_png = name_file_png.replace(' ', '_')
+                                comando = f'dot.exe -Tpng {name_file_dot} -o {name_file_png}'
+                                os.system(comando)
+                                os.chdir('..')
+                                print("--> Archivo .png creado exitosamente. Ver: Colas de secuencia")
+                            except:
+                                traceback.print_exc()
+                                print("--> Ocurrió un error en la creación del archivo .png :(")
+                        else:
+                            print("--> Ocurrió un error en la creación del archivo .dot :(")
+                    else:
+                        print("->Producto no ha sido ensamblado")
+                        # segundos_ensamblaje = lista_global_maquinas.ensamblar_producto(nombre_producto, treeview_ensamblaje)
+                except:
+                    traceback.print_exc()
+                    print("->Caractér no válido ingresado en spinbox")
 
 if __name__ == '__main__':
     ventana = Tk()

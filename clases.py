@@ -1,5 +1,6 @@
 from tkinter import END, Label, Text
 from xml.etree import ElementTree as ET
+import traceback
 
 # ========== MAQUINAS ==========
 class Maquina:
@@ -437,6 +438,15 @@ class Lista_Maquinas:
             actual = actual.siguiente
         return False
 
+    def reporte_cola_secuencia(self, nombre_producto, segundo):
+        actual = self.primer_maquina
+        while actual:
+            product_assembled = actual.maquina.listado_productos.devolver_producto(nombre_producto)
+            if product_assembled is not None:
+                digraph_creado = product_assembled.listado_comandos.crear_cola_secuencia(nombre_producto, segundo)
+                return digraph_creado
+            actual = actual.siguiente
+
 # ========== LINEAS DE PRODUCCIÓN EN MÁQUINA ==========
 class Linea:
     def __init__(self, numero, cantidad_componentes, tiempo_ensamblaje):
@@ -499,6 +509,8 @@ class Lista_Lineas:
                             if producto.segundos_ensamblando == actual.linea.tiempo_ensamblaje:
                                 if comando_requiere_ensamblar.es_ultimo:
                                     comando_requiere_ensamblar.requiere_ensamblar = False
+                                    comando_requiere_ensamblar.ensamblado = True
+                                    comando_requiere_ensamblar.segundo = segundo
                                     producto.ensamblado = True
                                     componente_ensamblado = True
                                     print(f"Ensamblado componente L{comando_requiere_ensamblar.linea}C{comando_requiere_ensamblar.componente}")
@@ -521,6 +533,8 @@ class Lista_Lineas:
             actual = actual.siguiente
         if componente_ensamblado:
             comando_requiere_ensamblar.ensamblando = False
+            comando_requiere_ensamblar.ensamblado = True
+            comando_requiere_ensamblar.segundo = segundo
             producto.listado_comandos.estado_requiere_siguiente()
 
 # ========== COMPONENTES EN LINEA, TODOS Y PENDIENTES ==========
@@ -659,12 +673,14 @@ class Lista_Productos:
 
 # ========== COMANDOS EN PRODUCTO ==========
 class Comando:
-    def __init__(self, linea, componente, requiere_ensamblar = False, es_ultimo = False, ensamblando = False):
+    def __init__(self, linea, componente, requiere_ensamblar = False, es_ultimo = False, ensamblando = False, ensamblado = False, segundo = None):
         self.linea = linea
         self.componente = componente
         self.requiere_ensamblar = requiere_ensamblar
         self.es_ultimo = es_ultimo
         self.ensamblando = ensamblando
+        self.ensamblado = ensamblado
+        self.segundo = segundo
 
 class Nodo_Comando:
     def __init__(self, comando = None, siguiente = None):
@@ -741,6 +757,51 @@ class Lista_Comandos:
                 comandos += "L" + str(actual.comando.linea) + "C" + str(actual.comando.componente)
             actual = actual.siguiente
         return comandos
+
+    def crear_cola_secuencia(self, nombre_producto, segundo):
+        digraph = 'digraph G {'
+        digraph += f'''\n    graph[label="Ensamblaje {nombre_producto}"];
+            node[style="filled", fillcolor="cornflowerblue", shape="square", fontname="Consolas"];'''
+        actual = self.primer_comando
+        nodos = 0
+        while actual:
+            if actual.comando.ensamblado:
+                if actual.comando.segundo <= segundo:
+                    nodos += 1
+                    if actual.comando.es_ultimo:
+                        digraph += f'\n    node{nodos}[label="L{actual.comando.linea}C{actual.comando.componente}\\nSegundo: {actual.comando.segundo}\\nENSAMBLADO", color="red", fillcolor="green"];'
+                    else:
+                        digraph += f'\n    node{nodos}[label="L{actual.comando.linea}C{actual.comando.componente}\\nSegundo: {actual.comando.segundo}", color="red"];'
+            actual = actual.siguiente
+        rank = '\n    {rank="same"'
+        for n in range(nodos):
+            node = n + 1
+            rank += f';node{node}'
+        rank += '};'
+        digraph += rank
+        for n in range(nodos):
+            node = n + 1
+            if node == 1:
+                if node == nodos:
+                    digraph += f'\n    node{node};'
+                else:
+                    digraph += f'\n    node{node} -> '
+            elif node == nodos:
+                digraph += f'node{node};'
+            else:
+                digraph += f'node{node} -> '
+        digraph += '\n}'
+        try:
+            name_file = f'{nombre_producto} {segundo}'
+            name_file = name_file.replace(' ', '_')
+            ruta = f'Colas de secuencia\\{name_file}.dot'
+            archivo_dot = open(ruta, 'w')
+            archivo_dot.write(digraph)
+            archivo_dot.close()
+            return True
+        except:
+            traceback.print_exc()
+            return False
 
 # ========== SIMULACIONES DE ENSAMBLAJE DE PRODUCTOS ==========
 class Simulacion:
